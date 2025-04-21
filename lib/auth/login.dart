@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginRegisterPage extends StatefulWidget {
   const LoginRegisterPage({super.key});
@@ -70,6 +71,17 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
       );
 
       if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        // Store user data in SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isLoggedIn', true);
+        await prefs.setString('firstName', data['firstName'] ?? '');
+        await prefs.setString('lastName', data['lastName'] ?? '');
+        await prefs.setString('email', data['email'] ?? '');
+        await prefs.setString('gender', data['gender'] ?? '');
+        await prefs.setString('country', data['country'] ?? '');
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text(
@@ -152,7 +164,12 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
             ),
             Divider(height: 30),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
+                // Guest login
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool('isLoggedIn', false);
+                await prefs.setString('firstName', 'Guest');
+                await prefs.setString('gender', 'Male'); // default avatar
                 Navigator.pushReplacementNamed(context, '/home');
               },
               child: Text("Continue as Guest"),

@@ -1,5 +1,8 @@
-import 'package:event_ease/event_detail_page.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
+import 'category.dart'; // make sure this is the updated one
 
 class PopularEventsPage extends StatefulWidget {
   const PopularEventsPage({super.key});
@@ -9,244 +12,127 @@ class PopularEventsPage extends StatefulWidget {
 }
 
 class _PopularEventsPageState extends State<PopularEventsPage> {
-  String selectedCategory = "All";
-  bool isSearching = false;
-  bool isLoading = false;
-  final TextEditingController searchController = TextEditingController();
-  List<Map<String, String>> filteredEvents = [];
+  List<dynamic> events = [];
+  String selectedCategory = 'All';
+  bool isLoading = true;
 
-  final List<Map<String, String>> events = [
-    {
-      "image": "assets/images/festival.jpg",
-      "name": "Art Workshop",
-      "date": "Fri, Dec 20",
-      "time": "11:00 - 15:00",
-      "location": "New Avenue, NY",
-      "category": "Workshops"
-    },
-    {
-      "image": "assets/images/festival.jpg",
-      "name": "Music Concert",
-      "date": "Tue, Dec 19",
-      "time": "19:00 - 22:00",
-      "location": "Central Park, NY",
-      "category": "Music"
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    fetchEvents();
+  }
 
-  void searchEvents(String query) {
-    setState(() {
-      isLoading = true;
-      filteredEvents.clear();
-    });
+  Future<void> fetchEvents() async {
+    final response =
+        await http.get(Uri.parse('http://192.168.1.6:8081/events'));
 
-    Future.delayed(Duration(seconds: 1), () {
+    if (response.statusCode == 200) {
+      final List<dynamic> eventList = json.decode(response.body);
       setState(() {
-        filteredEvents = events
-            .where((event) =>
-                event["name"]!.toLowerCase().contains(query.toLowerCase()))
-            .toList();
+        events = eventList;
         isLoading = false;
       });
-    });
+    } else {
+      setState(() => isLoading = false);
+      throw Exception('Failed to load events');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final List<dynamic> displayedEvents = selectedCategory == 'All'
+        ? events
+        : events.where((e) => e['category'] == selectedCategory).toList();
+
     return Scaffold(
-      backgroundColor: Color(0xFFF9FAFA),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Top Bar
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      appBar: AppBar(
+        title: const Text("Popular Events"),
+      ),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
                 children: [
-                  IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.black87),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                  if (!isSearching)
-                    Text(
-                      'Popular Events',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  IconButton(
-                    icon: Icon(Icons.search, color: Colors.black87),
-                    onPressed: () {
+                  CategoryBar(
+                    selectedCategory: selectedCategory,
+                    onCategorySelected: (category) {
                       setState(() {
-                        isSearching = !isSearching;
-                        searchController.clear();
-                        filteredEvents.clear();
+                        selectedCategory = category;
                       });
                     },
                   ),
-                ],
-              ),
-
-              SizedBox(height: 8),
-
-              // Search Box
-              if (isSearching)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: TextField(
-                    controller: searchController,
-                    onChanged: searchEvents,
-                    decoration: InputDecoration(
-                      hintText: "Search for events...",
-                      prefixIcon: Icon(Icons.search, color: Colors.grey),
-                      filled: true,
-                      fillColor: Color(0xFFF4F4F5),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: GridView.builder(
+                      itemCount: displayedEvents.length,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        childAspectRatio: 0.7,
                       ),
+                      itemBuilder: (context, index) {
+                        final event = displayedEvents[index];
+                        return EventCard(event: event);
+                      },
                     ),
                   ),
-                ),
-              SizedBox(height: 16),
-
-              // Events List
-              Expanded(
-                child: isSearching
-                    ? Column(
-                        children: [
-                          if (isLoading)
-                            Expanded(
-                              child: Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                            )
-                          else if (searchController.text.isNotEmpty &&
-                              filteredEvents.isEmpty)
-                            Expanded(
-                              child: Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Image.asset("assets/images/notfound.png",
-                                        height: 220),
-                                    SizedBox(height: 16),
-                                    Text("Not Found",
-                                        style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold)),
-                                    Text("Sorry, no events match your search.",
-                                        style: TextStyle(color: Colors.grey)),
-                                  ],
-                                ),
-                              ),
-                            )
-                          else if (filteredEvents.isNotEmpty)
-                            Expanded(
-                              child: ListView.builder(
-                                itemCount: filteredEvents.length,
-                                itemBuilder: (context, index) {
-                                  final event = filteredEvents[index];
-                                  return ListTile(
-                                    leading: Image.asset(event["image"]!,
-                                        width: 50,
-                                        height: 50,
-                                        fit: BoxFit.cover),
-                                    title: Text(event["name"]!),
-                                    subtitle: Text(
-                                        "${event["date"]} · ${event["time"]}"),
-                                    trailing: Icon(Icons.arrow_forward_ios,
-                                        size: 14, color: Colors.grey),
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              EventDetailsPage(event: event),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-                        ],
-                      )
-                    : GridView.builder(
-                        itemCount: events.length,
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: 0.75,
-                        ),
-                        itemBuilder: (context, index) {
-                          final event = events[index];
-                          return GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      EventDetailsPage(event: event),
-                                ),
-                              );
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                      color: Colors.black12,
-                                      blurRadius: 4,
-                                      spreadRadius: 1),
-                                ],
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.vertical(
-                                        top: Radius.circular(12)),
-                                    child: Image.asset(event["image"]!,
-                                        height: 120,
-                                        width: double.infinity,
-                                        fit: BoxFit.cover),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(event["name"]!,
-                                            style: TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.bold)),
-                                        Text(
-                                            "${event["date"]} · ${event["time"]}",
-                                            style: TextStyle(
-                                                fontSize: 12,
-                                                color: Color(0xFF6D62F4))),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                ],
               ),
-            ],
-          ),
+            ),
+    );
+  }
+}
+
+class EventCard extends StatelessWidget {
+  final dynamic event;
+
+  const EventCard({super.key, required this.event});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        // Navigate to Event Detail Page
+      },
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AspectRatio(
+              aspectRatio: 16 / 9,
+              child: ClipRRect(
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(12)),
+                child: Image.network(
+                  event['imageUrl'] ?? '',
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const Icon(Icons.broken_image),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                event['title'] ?? '',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text(
+                event['dateTime'] ?? '',
+                style: const TextStyle(color: Colors.grey),
+              ),
+            ),
+          ],
         ),
       ),
     );
