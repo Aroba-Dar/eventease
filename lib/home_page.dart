@@ -135,7 +135,7 @@ class HomePage extends StatelessWidget {
                                   borderRadius: BorderRadius.vertical(
                                       top: Radius.circular(12)),
                                   child: Image.network(
-                                    event.imageUrl ?? '',
+                                    event.imageUrl,
                                     height: 140,
                                     width: double.infinity,
                                     fit: BoxFit.cover,
