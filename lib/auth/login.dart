@@ -25,7 +25,7 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
   String? selectedGender;
   String? selectedCountry;
 
-  final String apiBase = 'http://192.168.1.6:8081/users';
+  final String apiBase = 'http://10.20.7.28:8081/users';
 
   void handleSubmit() async {
     if (!isLogin &&
