@@ -1,15 +1,14 @@
 import 'dart:convert';
+import 'package:event_ease/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'models/event.dart';
 import 'popular_events.dart';
 import 'category.dart';
 
 class HomePage extends StatefulWidget {
-  final Map<String, dynamic>? userData;
-  final bool isGuest;
-
-  const HomePage({super.key, this.userData, this.isGuest = false});
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -19,20 +18,31 @@ class _HomePageState extends State<HomePage> {
   String greeting = '';
   String displayName = 'Guest';
   String gender = 'male';
-  late bool isGuest;
+  bool isGuest = true;
   String selectedCategory = 'All';
   List<Event> allEvents = [];
 
   @override
   void initState() {
     super.initState();
-    isGuest = widget.isGuest;
-    if (!isGuest && widget.userData != null) {
-      fetchUserData(widget.userData!['email']);
+    loadUserSession();
+    fetchEvents();
+  }
+
+  Future<void> loadUserSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedEmail = prefs.getString('email');
+    final guest = prefs.getBool('isGuest') ?? true;
+
+    setState(() {
+      isGuest = guest;
+    });
+
+    if (!isGuest && savedEmail != null) {
+      fetchUserData(savedEmail);
     } else {
       setGuestUser();
     }
-    fetchEvents();
   }
 
   void setGuestUser() {
@@ -51,7 +61,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> fetchUserData(String email) async {
-    final url = Uri.parse('http://10.20.7.28:8081/users/email/$email');
+    final url = Uri.parse('http://192.168.1.6:8081/users/email/$email');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -70,7 +80,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> fetchEvents() async {
-    final response = await http.get(Uri.parse('http://10.20.7.28:8081/events'));
+    final response =
+        await http.get(Uri.parse('http://192.168.1.6:8081/events'));
     if (response.statusCode == 200) {
       List data = json.decode(response.body);
       setState(() {
@@ -88,9 +99,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildProfileAvatar() {
-    String imageAsset = gender == 'female'
-        ? 'assets/images/organizer.jpg'
-        : 'assets/images/profile_image.jpg';
+    String imageAsset = gender == 'male'
+        ? 'assets/images/male.jpeg'
+        : 'assets/images/female.jpeg';
     return CircleAvatar(
       backgroundImage: AssetImage(imageAsset),
       radius: 20,
@@ -318,6 +329,14 @@ class _HomePageState extends State<HomePage> {
                 icon: Icon(Icons.favorite), label: 'Favorites'),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           ],
+          onTap: (index) {
+            if (index == 3) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfilePage()),
+              );
+            }
+          },
         ),
       ),
     );

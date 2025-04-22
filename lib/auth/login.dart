@@ -14,7 +14,6 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
   bool isLogin = true;
   bool isAccepted = false;
 
-  // Controllers
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final firstNameController = TextEditingController();
@@ -25,7 +24,7 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
   String? selectedGender;
   String? selectedCountry;
 
-  final String apiBase = 'http://10.20.7.28:8081/users';
+  final String apiBase = 'http://192.168.1.6:8081/users';
 
   void handleSubmit() async {
     if (!isLogin &&
@@ -73,14 +72,16 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
 
-        // Store user data in SharedPreferences
         final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isGuest', false);
         await prefs.setBool('isLoggedIn', true);
+        await prefs.setString('email', data['email'] ?? '');
         await prefs.setString('firstName', data['firstName'] ?? '');
         await prefs.setString('lastName', data['lastName'] ?? '');
-        await prefs.setString('email', data['email'] ?? '');
-        await prefs.setString('gender', data['gender'] ?? '');
+        await prefs.setString('gender', data['gender'] ?? 'Male');
         await prefs.setString('country', data['country'] ?? '');
+        await prefs.setString('phone', data['phone'] ?? '');
+        await prefs.setString('dateOfBirth', data['dateOfBirth'] ?? '');
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -165,11 +166,11 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
             Divider(height: 30),
             TextButton(
               onPressed: () async {
-                // Guest login
                 final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool('isGuest', true);
                 await prefs.setBool('isLoggedIn', false);
                 await prefs.setString('firstName', 'Guest');
-                await prefs.setString('gender', 'Male'); // default avatar
+                await prefs.setString('gender', 'Male');
                 Navigator.pushReplacementNamed(context, '/home');
               },
               child: Text("Continue as Guest"),

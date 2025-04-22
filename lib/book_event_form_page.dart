@@ -1,9 +1,12 @@
+import 'package:event_ease/seat_count_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class BookEventPage extends StatefulWidget {
-  const BookEventPage({super.key});
+  final Map<String, dynamic> event;
+
+  const BookEventPage({super.key, required this.event});
 
   @override
   _BookEventPageState createState() => _BookEventPageState();
@@ -12,18 +15,18 @@ class BookEventPage extends StatefulWidget {
 class _BookEventPageState extends State<BookEventPage> {
   bool isAccepted = false;
 
-  // Controllers
   final _nameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _dobController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _passwordController =
+      TextEditingController(); // New password controller
 
   String? selectedGender;
   String? selectedCountry;
 
-  // Replace this with your backend URL
-  final String apiUrl = 'http:// 10.20.7.28:8081/booking-form/add';
+  final String apiUrl = 'http://192.168.1.6:8081/booking-form/add';
 
   Future<void> _submitForm() async {
     final Map<String, dynamic> userData = {
@@ -33,6 +36,7 @@ class _BookEventPageState extends State<BookEventPage> {
       "dateOfBirth": _dobController.text,
       "email": _emailController.text,
       "phone": _phoneController.text,
+      "password": _passwordController.text, // Adding password
       "country": selectedCountry,
       "acceptedTerms": isAccepted
     };
@@ -48,7 +52,12 @@ class _BookEventPageState extends State<BookEventPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("User registered successfully!")),
         );
-        Navigator.pop(context);
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BookEventSeatPage(event: widget.event),
+          ),
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Failed to register: ${response.body}")),
@@ -64,9 +73,11 @@ class _BookEventPageState extends State<BookEventPage> {
 
   @override
   Widget build(BuildContext context) {
+    final eventName = widget.event['name'] ?? "Book Event";
+
     return Scaffold(
       appBar: AppBar(
-        title: Text("Book Event", style: TextStyle(color: Colors.black)),
+        title: Text(eventName, style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
@@ -85,6 +96,8 @@ class _BookEventPageState extends State<BookEventPage> {
             _buildDateField("Date of Birth", _dobController),
             _buildTextField("Email", "andrew@example.com", _emailController),
             _buildTextField("Phone Number", "+123456789", _phoneController),
+            _buildTextField("Password", "********", _passwordController,
+                obscureText: true), // Password field
             _buildDropdownField("Country", ["United States", "Canada", "UK"]),
             SizedBox(height: 16),
             Row(
@@ -136,11 +149,13 @@ class _BookEventPageState extends State<BookEventPage> {
   }
 
   Widget _buildTextField(
-      String label, String placeholder, TextEditingController controller) {
+      String label, String placeholder, TextEditingController controller,
+      {bool obscureText = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: TextField(
         controller: controller,
+        obscureText: obscureText,
         decoration: InputDecoration(
           labelText: label,
           hintText: placeholder,

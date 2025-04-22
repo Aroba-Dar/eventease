@@ -2,7 +2,9 @@ import 'package:event_ease/payment_selection_page.dart';
 import 'package:flutter/material.dart';
 
 class BookEventSeatPage extends StatefulWidget {
-  const BookEventSeatPage({super.key});
+  final Map<String, dynamic> event;
+
+  const BookEventSeatPage({super.key, required this.event});
 
   @override
   _BookEventSeatPageState createState() => _BookEventSeatPageState();
@@ -15,22 +17,23 @@ class _BookEventSeatPageState extends State<BookEventSeatPage> {
 
   @override
   Widget build(BuildContext context) {
+    final eventName = widget.event['name'] ?? "Event Seat Booking";
+
     return Scaffold(
       appBar: AppBar(
+        title: Text("Book Seat - $eventName",
+            style: TextStyle(color: Colors.black)),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text("Book Event", style: TextStyle(color: Colors.black)),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
       ),
       body: Column(
         children: [
           SizedBox(height: 16),
-
-          // Economy & VIP Tabs
           Container(
             padding: EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -41,8 +44,6 @@ class _BookEventSeatPageState extends State<BookEventSeatPage> {
             ),
           ),
           SizedBox(height: 16),
-
-          // Seat Selection
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16),
             child: Column(
@@ -52,8 +53,6 @@ class _BookEventSeatPageState extends State<BookEventSeatPage> {
                     style:
                         TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 SizedBox(height: 12),
-
-                // Seat Counter
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -70,10 +69,7 @@ class _BookEventSeatPageState extends State<BookEventSeatPage> {
               ],
             ),
           ),
-
           Spacer(),
-
-          // Continue Button -> Navigate to Form Page
           Container(
             padding: EdgeInsets.all(16),
             child: ElevatedButton(
@@ -81,8 +77,7 @@ class _BookEventSeatPageState extends State<BookEventSeatPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) =>
-                          PaymentSelectionPage()), // Navigate to Form Page
+                      builder: (context) => PaymentSelectionPage()),
                 );
               },
               style: ElevatedButton.styleFrom(

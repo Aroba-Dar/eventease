@@ -1,14 +1,48 @@
 import 'package:event_ease/attendees_page.dart';
 import 'package:event_ease/book_event_form_page.dart';
 import 'package:event_ease/organizer_profile.dart';
+import 'package:event_ease/seat_count_page.dart';
 import 'package:event_ease/share_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class EventDetailsPage extends StatelessWidget {
   final Map<String, dynamic> event;
 
   const EventDetailsPage({super.key, required this.event});
+
+  Future<void> _handleBooking(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    final isGuest = prefs.getBool('isGuest') ?? true;
+
+    if (isGuest) {
+      // 1) Show the guest booking form
+      final formSuccess = await Navigator.push<bool>(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BookEventPage(event: event),
+        ),
+      );
+      // 2) If the form was submitted successfully, go to seat page
+      if (formSuccess == true) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => BookEventSeatPage(event: event),
+          ),
+        );
+      }
+    } else {
+      // Registered user → go straight to seat page
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BookEventSeatPage(event: event),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +87,6 @@ class EventDetailsPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Event Name & Category
                     Text(
                       event['name'] ?? '',
                       style: const TextStyle(
@@ -83,7 +116,6 @@ class EventDetailsPage extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    // Date & Time
                     Row(
                       children: [
                         const Icon(Icons.calendar_today, color: Colors.blue),
@@ -106,7 +138,6 @@ class EventDetailsPage extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    // Location
                     Row(
                       children: [
                         const Icon(Icons.location_on, color: Colors.red),
@@ -119,8 +150,6 @@ class EventDetailsPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     const Divider(),
-
-                    // Organizer (Placeholder for now)
                     ListTile(
                       leading: const CircleAvatar(
                         backgroundImage:
@@ -146,10 +175,7 @@ class EventDetailsPage extends StatelessWidget {
                         );
                       },
                     ),
-
                     const Divider(),
-
-                    // About Event
                     const Text(
                       "About Event",
                       style:
@@ -158,8 +184,6 @@ class EventDetailsPage extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(event['description'] ?? 'No description available.'),
                     const SizedBox(height: 16),
-
-                    // Gallery (Placeholder)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -194,8 +218,6 @@ class EventDetailsPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-
-                    // Map Placeholder
                     Container(
                       height: 200,
                       decoration: BoxDecoration(
@@ -237,12 +259,7 @@ class EventDetailsPage extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         color: Colors.white,
         child: ElevatedButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => BookEventPage()),
-            );
-          },
+          onPressed: () => _handleBooking(context),
           style: ElevatedButton.styleFrom(
             minimumSize: const Size(double.infinity, 50),
             backgroundColor: Colors.blueAccent,

@@ -24,7 +24,8 @@ class _PopularEventsPageState extends State<PopularEventsPage> {
   }
 
   Future<void> fetchEvents() async {
-    final response = await http.get(Uri.parse('http://10.20.7.28:8081/events'));
+    final response =
+        await http.get(Uri.parse('http://192.168.1.6:8081/events'));
 
     if (response.statusCode == 200) {
       final List<dynamic> eventList = json.decode(response.body);
