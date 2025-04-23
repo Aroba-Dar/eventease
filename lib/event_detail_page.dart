@@ -3,10 +3,11 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:event_ease/attendees_page.dart';
 import 'package:event_ease/book_event_form_page.dart';
 import 'package:event_ease/seat_count_page.dart';
-import 'package:event_ease/share_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:location/location.dart' as location;
 
 class EventDetailsPage extends StatefulWidget {
   final Map<String, dynamic> event;
@@ -17,13 +18,86 @@ class EventDetailsPage extends StatefulWidget {
   State<EventDetailsPage> createState() => _EventDetailsPageState();
 }
 
-class _EventDetailsPageState extends State<EventDetailsPage> {
+class _EventDetailsPageState extends State<EventDetailsPage>
+    with WidgetsBindingObserver {
   late Future<bool> _isFavFuture;
+  location.LocationData? _currentLocation;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _isFavFuture = _isFavorite();
+    _getCurrentLocation();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _getCurrentLocation();
+    }
+  }
+
+  Future<void> _getCurrentLocation() async {
+    try {
+      final permission = await Permission.locationWhenInUse.request();
+      if (!permission.isGranted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Location permission not granted")),
+        );
+        return;
+      }
+
+      location.Location locationService = location.Location();
+      bool serviceEnabled = await locationService.serviceEnabled();
+      if (!serviceEnabled) {
+        serviceEnabled = await locationService.requestService();
+        if (!serviceEnabled) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Location service not enabled")),
+          );
+          return;
+        }
+      }
+
+      final locationData = await locationService.getLocation();
+      if (mounted) {
+        setState(() {
+          _currentLocation = locationData;
+        });
+      }
+    } catch (e) {
+      print("Error getting location: $e");
+    }
+  }
+
+  void _launchMaps(String destination) async {
+    final destinationEncoded = Uri.encodeComponent(destination);
+    final origin = _currentLocation != null
+        ? "${_currentLocation!.latitude},${_currentLocation!.longitude}"
+        : "";
+    final url =
+        "https://www.google.com/maps/dir/?api=1&destination=$destinationEncoded&origin=$origin&travelmode=driving";
+
+    final uri = Uri.parse(url);
+
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Could not open maps")),
+        );
+      }
+    } catch (e) {
+      print("Error launching map: $e");
+    }
   }
 
   Future<void> _handleBooking() async {
@@ -68,30 +142,6 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
     Add2Calendar.addEvent2Cal(calendarEvent);
   }
 
-  void _launchMaps(String location) async {
-    final url =
-        'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(location)}';
-    final uri = Uri.parse(url);
-
-    try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        // If maps can't be launched, fallback to the browser
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text("Could not open maps. Opening in browser...")),
-        );
-        await launchUrl(uri, mode: LaunchMode.inAppWebView);
-      }
-    } catch (e) {
-      // In case of any other errors
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
-    }
-  }
-
   Future<void> _toggleFavorite() async {
     final prefs = await SharedPreferences.getInstance();
     final userEmail = prefs.getString('email');
@@ -106,9 +156,11 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
     }
 
     await prefs.setStringList(favoriteKey, favorites);
-    setState(() {
-      _isFavFuture = _isFavorite();
-    });
+    if (mounted) {
+      setState(() {
+        _isFavFuture = _isFavorite();
+      });
+    }
   }
 
   Future<bool> _isFavorite() async {
@@ -154,7 +206,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                     options: CarouselOptions(height: 300, autoPlay: true),
                     items: [(event['imageUrl'] ?? '')]
                         .map<Widget>(_buildImage)
-                        .toList(), // <-- explicit Widget cast
+                        .toList(),
                   ),
                 ),
               ),
@@ -284,8 +336,8 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                       color: Colors.grey[300],
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Center(
-                      child: Icon(Icons.map, size: 50, color: Colors.grey[700]),
+                    child: const Center(
+                      child: Icon(Icons.map, size: 50, color: Colors.grey),
                     ),
                   ),
                   const SizedBox(height: 80),
@@ -301,19 +353,18 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                 FutureBuilder<bool>(
                   future: _isFavFuture,
                   builder: (context, snapshot) {
-                    final isFav = snapshot.data ?? false;
-                    return IconButton(
-                      icon: Icon(
-                        isFav ? Icons.favorite : Icons.favorite_border,
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const CircularProgressIndicator();
+                    }
+                    final isFavorite = snapshot.data ?? false;
+                    return GestureDetector(
+                      onTap: _toggleFavorite,
+                      child: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
                         color: Colors.red,
                       ),
-                      onPressed: _toggleFavorite,
                     );
                   },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.share, color: Colors.black),
-                  onPressed: () => showShareBottomSheet(context),
                 ),
               ],
             ),
