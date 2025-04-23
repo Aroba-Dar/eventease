@@ -1,6 +1,5 @@
 import 'package:event_ease/attendees_page.dart';
 import 'package:event_ease/book_event_form_page.dart';
-import 'package:event_ease/organizer_profile.dart';
 import 'package:event_ease/seat_count_page.dart';
 import 'package:event_ease/share_sheet.dart';
 import 'package:flutter/material.dart';
@@ -151,29 +150,18 @@ class EventDetailsPage extends StatelessWidget {
                     const SizedBox(height: 16),
                     const Divider(),
                     ListTile(
-                      leading: const CircleAvatar(
-                        backgroundImage:
-                            AssetImage("assets/images/organizer.jpg"),
+                      leading: CircleAvatar(
+                        backgroundImage: event['profileImage'] != null &&
+                                event['profileImage'].isNotEmpty
+                            ? NetworkImage(event['profileImage'])
+                            : const AssetImage("assets/images/organizer.jpg")
+                                as ImageProvider,
                       ),
-                      title: const Text("World of Music"),
+                      title: Text(
+                        event['organizerName'] ?? 'Organizer Name',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       subtitle: const Text("Organizer"),
-                      trailing: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => OrganizerProfilePage()),
-                          );
-                        },
-                        child: const Text("Follow"),
-                      ),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => OrganizerProfilePage()),
-                        );
-                      },
                     ),
                     const Divider(),
                     const Text(
