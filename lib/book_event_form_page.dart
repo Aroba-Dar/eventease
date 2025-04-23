@@ -26,7 +26,7 @@ class _BookEventPageState extends State<BookEventPage> {
   String? selectedGender;
   String? selectedCountry;
 
-  final String apiUrl = 'http://10.20.6.65:8081/booking-form/add';
+  final String apiUrl = 'http://192.168.1.6:8081/booking-form/add';
 
   Future<void> _submitForm() async {
     final Map<String, dynamic> userData = {

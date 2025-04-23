@@ -1,225 +1,295 @@
+import 'package:add_2_calendar/add_2_calendar.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:event_ease/attendees_page.dart';
 import 'package:event_ease/book_event_form_page.dart';
 import 'package:event_ease/seat_count_page.dart';
 import 'package:event_ease/share_sheet.dart';
 import 'package:flutter/material.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class EventDetailsPage extends StatelessWidget {
+class EventDetailsPage extends StatefulWidget {
   final Map<String, dynamic> event;
 
   const EventDetailsPage({super.key, required this.event});
 
-  Future<void> _handleBooking(BuildContext context) async {
+  @override
+  State<EventDetailsPage> createState() => _EventDetailsPageState();
+}
+
+class _EventDetailsPageState extends State<EventDetailsPage> {
+  late Future<bool> _isFavFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _isFavFuture = _isFavorite();
+  }
+
+  Future<void> _handleBooking() async {
     final prefs = await SharedPreferences.getInstance();
     final isGuest = prefs.getBool('isGuest') ?? true;
 
     if (isGuest) {
-      // 1) Show the guest booking form
       final formSuccess = await Navigator.push<bool>(
         context,
         MaterialPageRoute(
-          builder: (_) => BookEventPage(event: event),
+          builder: (_) => BookEventPage(event: widget.event),
         ),
       );
-      // 2) If the form was submitted successfully, go to seat page
       if (formSuccess == true) {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => BookEventSeatPage(event: event),
+            builder: (_) => BookEventSeatPage(event: widget.event),
           ),
         );
       }
     } else {
-      // Registered user → go straight to seat page
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => BookEventSeatPage(event: event),
+          builder: (_) => BookEventSeatPage(event: widget.event),
         ),
+      );
+    }
+  }
+
+  void _addToCalendar() {
+    final event = widget.event;
+    final calendarEvent = Event(
+      title: event['name'] ?? 'Event',
+      description: event['description'] ?? '',
+      location: event['location'] ?? '',
+      startDate: DateTime.parse('${event['date']} ${event['time']}'),
+      endDate: DateTime.parse('${event['date']} ${event['time']}')
+          .add(const Duration(hours: 2)),
+    );
+    Add2Calendar.addEvent2Cal(calendarEvent);
+  }
+
+  void _launchMaps(String location) async {
+    final url =
+        'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(location)}';
+    final uri = Uri.parse(url);
+
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        // If maps can't be launched, fallback to the browser
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text("Could not open maps. Opening in browser...")),
+        );
+        await launchUrl(uri, mode: LaunchMode.inAppWebView);
+      }
+    } catch (e) {
+      // In case of any other errors
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userEmail = prefs.getString('email');
+    final favoriteKey = 'favorites_$userEmail';
+    List<String> favorites = prefs.getStringList(favoriteKey) ?? [];
+
+    final eventId = widget.event['id'].toString();
+    if (favorites.contains(eventId)) {
+      favorites.remove(eventId);
+    } else {
+      favorites.add(eventId);
+    }
+
+    await prefs.setStringList(favoriteKey, favorites);
+    setState(() {
+      _isFavFuture = _isFavorite();
+    });
+  }
+
+  Future<bool> _isFavorite() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userEmail = prefs.getString('email');
+    final favoriteKey = 'favorites_$userEmail';
+    List<String> favorites = prefs.getStringList(favoriteKey) ?? [];
+    return favorites.contains(widget.event['id'].toString());
+  }
+
+  Widget _buildImage(dynamic imageUrl) {
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      return Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        errorBuilder: (context, error, stackTrace) =>
+            const Icon(Icons.broken_image),
+      );
+    } else {
+      return Image.asset(
+        "assets/images/notfound.png",
+        fit: BoxFit.cover,
+        width: double.infinity,
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final event = widget.event;
+
     return Scaffold(
       body: Stack(
         children: [
           NestedScrollView(
-            headerSliverBuilder: (context, innerBoxIsScrolled) {
-              return [
-                SliverAppBar(
-                  expandedHeight: 300.0,
-                  floating: false,
-                  pinned: true,
-                  flexibleSpace: FlexibleSpaceBar(
-                    background: CarouselSlider(
-                      options: CarouselOptions(height: 300, autoPlay: true),
-                      items: [
-                        event['imageUrl'] ?? '',
-                      ].map((imageUrl) {
-                        return imageUrl.isNotEmpty
-                            ? Image.network(
-                                imageUrl,
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    const Icon(Icons.broken_image),
-                              )
-                            : Image.asset(
-                                "assets/images/notfound.png",
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                              );
-                      }).toList(),
-                    ),
+            headerSliverBuilder: (_, __) => [
+              SliverAppBar(
+                expandedHeight: 300,
+                pinned: true,
+                flexibleSpace: FlexibleSpaceBar(
+                  background: CarouselSlider(
+                    options: CarouselOptions(height: 300, autoPlay: true),
+                    items: [(event['imageUrl'] ?? '')]
+                        .map<Widget>(_buildImage)
+                        .toList(), // <-- explicit Widget cast
                   ),
                 ),
-              ];
-            },
+              ),
+            ],
             body: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      event['name'] ?? '',
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(event['name'] ?? '',
                       style: const TextStyle(
-                          fontSize: 24, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Chip(label: Text(event['category'] ?? '')),
-                        const SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => AttendeesPage()),
-                            );
-                          },
-                          child: const Row(
-                            children: [
-                              Text("20,000+ Going",
-                                  style: TextStyle(color: Colors.grey)),
-                              Icon(Icons.arrow_forward, color: Colors.grey),
-                            ],
-                          ),
+                          fontSize: 24, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Chip(label: Text(event['category'] ?? '')),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => AttendeesPage()),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        const Icon(Icons.calendar_today, color: Colors.blue),
-                        const SizedBox(width: 8),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: const Row(
                           children: [
-                            Text(
-                              event['date'] ?? '',
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            Text(event['time'] ?? ''),
+                            Text("20,000+ Going",
+                                style: TextStyle(color: Colors.grey)),
+                            Icon(Icons.arrow_forward, color: Colors.grey),
                           ],
                         ),
-                        const Spacer(),
-                        ElevatedButton(
-                            onPressed: () {},
-                            child: const Text("Add to Calendar")),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        const Icon(Icons.location_on, color: Colors.red),
-                        const SizedBox(width: 8),
-                        Expanded(child: Text(event['location'] ?? '')),
-                        TextButton(
-                            onPressed: () {},
-                            child: const Text("Get Directions")),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    const Divider(),
-                    ListTile(
-                      leading: CircleAvatar(
-                        backgroundImage: event['profileImage'] != null &&
-                                event['profileImage'].isNotEmpty
-                            ? NetworkImage(event['profileImage'])
-                            : const AssetImage("assets/images/organizer.jpg")
-                                as ImageProvider,
                       ),
-                      title: Text(
-                        event['organizerName'] ?? 'Organizer Name',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: const Text("Organizer"),
-                    ),
-                    const Divider(),
-                    const Text(
-                      "About Event",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(event['description'] ?? 'No description available.'),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text("Gallery (Pre-Event)",
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold)),
-                        TextButton(
-                            onPressed: () {}, child: const Text("See All")),
-                      ],
-                    ),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      const Icon(Icons.calendar_today, color: Colors.blue),
+                      const SizedBox(width: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          "assets/images/event1.jpg",
-                          "assets/images/event2.jpg",
-                          "assets/images/event3.jpg",
-                        ]
-                            .map((img) => Padding(
-                                  padding: const EdgeInsets.only(right: 8.0),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Image.asset(
-                                      img,
-                                      height: 100,
-                                      width: 100,
-                                      fit: BoxFit.cover,
-                                    ),
+                          Text(event['date'] ?? '',
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold)),
+                          Text(event['time'] ?? ''),
+                        ],
+                      ),
+                      const Spacer(),
+                      ElevatedButton(
+                        onPressed: _addToCalendar,
+                        child: const Text("Add to Calendar"),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on, color: Colors.red),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(event['location'] ?? '')),
+                      TextButton(
+                        onPressed: () => _launchMaps(event['location'] ?? ''),
+                        child: const Text("Get Directions"),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 32),
+                  ListTile(
+                    leading: CircleAvatar(
+                      backgroundImage: event['organizerImage'] != null &&
+                              event['organizerImage'].isNotEmpty
+                          ? NetworkImage(event['organizerImage'])
+                          : const AssetImage("assets/images/organizer.jpg")
+                              as ImageProvider,
+                    ),
+                    title: Text(
+                      event['organizerName'] ?? 'Organizer Name',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: const Text("Organizer"),
+                  ),
+                  const Divider(),
+                  const Text("About Event",
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  Text(event['description'] ?? 'No description available.'),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text("Gallery (Pre-Event)",
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
+                      TextButton(
+                        onPressed: () {},
+                        child: const Text("See All"),
+                      ),
+                    ],
+                  ),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        "assets/images/event1.jpg",
+                        "assets/images/event2.jpg",
+                        "assets/images/event3.jpg",
+                      ]
+                          .map((img) => Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.asset(
+                                    img,
+                                    height: 100,
+                                    width: 100,
+                                    fit: BoxFit.cover,
                                   ),
-                                ))
-                            .toList(),
-                      ),
+                                ),
+                              ))
+                          .toList(),
                     ),
-                    const SizedBox(height: 16),
-                    Container(
-                      height: 200,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Center(
-                        child:
-                            Icon(Icons.map, size: 50, color: Colors.grey[700]),
-                      ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    const SizedBox(height: 80),
-                  ],
-                ),
+                    child: Center(
+                      child: Icon(Icons.map, size: 50, color: Colors.grey[700]),
+                    ),
+                  ),
+                  const SizedBox(height: 80),
+                ],
               ),
             ),
           ),
@@ -228,15 +298,22 @@ class EventDetailsPage extends StatelessWidget {
             right: 16,
             child: Row(
               children: [
-                IconButton(
-                  icon: const Icon(Icons.favorite_border, color: Colors.black),
-                  onPressed: () {},
+                FutureBuilder<bool>(
+                  future: _isFavFuture,
+                  builder: (context, snapshot) {
+                    final isFav = snapshot.data ?? false;
+                    return IconButton(
+                      icon: Icon(
+                        isFav ? Icons.favorite : Icons.favorite_border,
+                        color: Colors.red,
+                      ),
+                      onPressed: _toggleFavorite,
+                    );
+                  },
                 ),
                 IconButton(
                   icon: const Icon(Icons.share, color: Colors.black),
-                  onPressed: () {
-                    showShareBottomSheet(context);
-                  },
+                  onPressed: () => showShareBottomSheet(context),
                 ),
               ],
             ),
@@ -247,7 +324,7 @@ class EventDetailsPage extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         color: Colors.white,
         child: ElevatedButton(
-          onPressed: () => _handleBooking(context),
+          onPressed: _handleBooking,
           style: ElevatedButton.styleFrom(
             minimumSize: const Size(double.infinity, 50),
             backgroundColor: Colors.blueAccent,
