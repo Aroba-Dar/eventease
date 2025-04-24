@@ -52,11 +52,10 @@ class _BookEventPageState extends State<BookEventPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("User registered successfully!")),
         );
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => BookEventSeatPage(event: widget.event),
-          ),
+        MaterialPageRoute(
+          builder: (_) => BookEventSeatPage(
+              event: widget.event,
+              eventId: widget.event['id']), // Pass eventId here
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

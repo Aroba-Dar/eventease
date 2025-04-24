@@ -112,18 +112,42 @@ class _EventDetailsPageState extends State<EventDetailsPage>
         ),
       );
       if (formSuccess == true) {
+        final eventId = widget.event['id'];
+
+        if (eventId == null || eventId is! int) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Event ID is missing or invalid')),
+          );
+          return;
+        }
+
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => BookEventSeatPage(event: widget.event),
+            builder: (_) => BookEventSeatPage(
+              event: widget.event,
+              eventId: eventId, // Event ID is passed here
+            ),
           ),
         );
       }
     } else {
+      final eventId = widget.event['id'];
+
+      if (eventId == null || eventId is! int) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Event ID is missing or invalid')),
+        );
+        return;
+      }
+
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => BookEventSeatPage(event: widget.event),
+          builder: (_) => BookEventSeatPage(
+            event: widget.event,
+            eventId: eventId, // Event ID is passed here
+          ),
         ),
       );
     }

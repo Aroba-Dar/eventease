@@ -102,6 +102,7 @@ class EventCard extends StatelessWidget {
           MaterialPageRoute(
             builder: (context) => EventDetailsPage(
               event: {
+                'id': event['id'],
                 'name': event['title'] ?? '',
                 'category': event['category'] ?? '',
                 'date': event['dateTime']?.split(' ')[0] ?? '',

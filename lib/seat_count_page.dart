@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 
 class BookEventSeatPage extends StatefulWidget {
   final Map<String, dynamic> event;
+  final int eventId;
 
-  const BookEventSeatPage({super.key, required this.event});
+  const BookEventSeatPage(
+      {super.key, required this.event, required this.eventId});
 
   @override
   _BookEventSeatPageState createState() => _BookEventSeatPageState();
@@ -12,8 +14,14 @@ class BookEventSeatPage extends StatefulWidget {
 
 class _BookEventSeatPageState extends State<BookEventSeatPage> {
   int seatCount = 1;
-  int ticketPrice = 50;
+  int ticketPrice = 0;
   bool isEconomy = true;
+
+  @override
+  void initState() {
+    super.initState();
+    ticketPrice = widget.event['economyPrice'] ?? 50;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,20 +30,20 @@ class _BookEventSeatPageState extends State<BookEventSeatPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Book Seat - $eventName",
-            style: TextStyle(color: Colors.black)),
+            style: const TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: Column(
         children: [
-          SizedBox(height: 16),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 16),
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
                 _buildTab("Economy", isEconomy),
@@ -43,24 +51,24 @@ class _BookEventSeatPageState extends State<BookEventSeatPage> {
               ],
             ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Choose number of seats",
+                const Text("Choose number of seats",
                     style:
                         TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _buildCounterButton(Icons.remove, false),
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Text("$seatCount",
-                          style: TextStyle(
+                          style: const TextStyle(
                               fontSize: 22, fontWeight: FontWeight.bold)),
                     ),
                     _buildCounterButton(Icons.add, true),
@@ -69,25 +77,31 @@ class _BookEventSeatPageState extends State<BookEventSeatPage> {
               ],
             ),
           ),
-          Spacer(),
+          const Spacer(),
           Container(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: ElevatedButton(
               onPressed: () {
+                // Pass data to payment page (optional)
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => PaymentSelectionPage()),
+                    builder: (context) => PaymentSelectionPage(
+                        // eventId: widget.event['id'],
+                        // seatCount: seatCount,
+                        // totalPrice: seatCount * ticketPrice,
+                        ),
+                  ),
                 );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blueAccent,
-                minimumSize: Size(double.infinity, 50),
+                minimumSize: const Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30)),
               ),
               child: Text("Continue - \$${seatCount * ticketPrice}",
-                  style: TextStyle(fontSize: 18)),
+                  style: const TextStyle(fontSize: 18)),
             ),
           ),
         ],
@@ -101,7 +115,9 @@ class _BookEventSeatPageState extends State<BookEventSeatPage> {
         onTap: () {
           setState(() {
             isEconomy = text == "Economy";
-            ticketPrice = isEconomy ? 50 : 100;
+            ticketPrice = isEconomy
+                ? widget.event['economyPrice'] ?? 50
+                : widget.event['vipPrice'] ?? 100;
           });
         },
         child: Column(
@@ -111,7 +127,7 @@ class _BookEventSeatPageState extends State<BookEventSeatPage> {
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: selected ? Colors.blueAccent : Colors.grey)),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             if (selected)
               Container(height: 2, width: 60, color: Colors.blueAccent),
           ],
@@ -133,8 +149,8 @@ class _BookEventSeatPageState extends State<BookEventSeatPage> {
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.white,
-        shape: CircleBorder(),
-        padding: EdgeInsets.all(10),
+        shape: const CircleBorder(),
+        padding: const EdgeInsets.all(10),
         side: BorderSide(color: Colors.grey.shade300),
       ),
       child: Icon(icon, color: Colors.black),
