@@ -14,18 +14,21 @@ class BookEventSeatPage extends StatefulWidget {
 
 class _BookEventSeatPageState extends State<BookEventSeatPage> {
   int seatCount = 1;
-  int ticketPrice = 0;
+  double ticketPrice = 0.0; // Changed to double
+  double vipPrice = 0.0; // Added
   bool isEconomy = true;
 
   @override
   void initState() {
     super.initState();
-    ticketPrice = widget.event['economyPrice'] ?? 50;
+    ticketPrice = (widget.event['economyPrice'] ?? 500.0).toDouble();
+    vipPrice = (widget.event['vipPrice'] ?? 1000.0).toDouble();
   }
 
   @override
   Widget build(BuildContext context) {
     final eventName = widget.event['name'] ?? "Event Seat Booking";
+    final vipPrice = widget.event['vipPrice'] ?? 1000;
 
     return Scaffold(
       appBar: AppBar(
@@ -82,15 +85,19 @@ class _BookEventSeatPageState extends State<BookEventSeatPage> {
             padding: const EdgeInsets.all(16),
             child: ElevatedButton(
               onPressed: () {
-                // Pass data to payment page (optional)
+                final totalPrice =
+                    (isEconomy ? seatCount * ticketPrice : seatCount * vipPrice)
+                        .toDouble(); // <-- Force double
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => PaymentSelectionPage(
-                        // eventId: widget.event['id'],
-                        // seatCount: seatCount,
-                        // totalPrice: seatCount * ticketPrice,
-                        ),
+                      eventId: widget.eventId,
+                      seatCount: seatCount,
+                      totalPrice: totalPrice, // Now definitely double
+                      event: widget.event,
+                    ),
                   ),
                 );
               },
@@ -100,8 +107,10 @@ class _BookEventSeatPageState extends State<BookEventSeatPage> {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30)),
               ),
-              child: Text("Continue - \$${seatCount * ticketPrice}",
-                  style: const TextStyle(fontSize: 18)),
+              child: Text(
+                "Continue - \$${(isEconomy ? seatCount * ticketPrice : seatCount * vipPrice).toStringAsFixed(2)}",
+                style: const TextStyle(fontSize: 18),
+              ),
             ),
           ),
         ],
@@ -115,9 +124,6 @@ class _BookEventSeatPageState extends State<BookEventSeatPage> {
         onTap: () {
           setState(() {
             isEconomy = text == "Economy";
-            ticketPrice = isEconomy
-                ? widget.event['economyPrice'] ?? 50
-                : widget.event['vipPrice'] ?? 100;
           });
         },
         child: Column(

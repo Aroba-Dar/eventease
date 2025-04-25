@@ -2,13 +2,27 @@ import 'package:event_ease/pin_page.dart';
 import 'package:flutter/material.dart';
 
 class ReviewSummaryPage extends StatelessWidget {
-  const ReviewSummaryPage({super.key});
+  final Map<String, dynamic> event;
+  final int seatCount;
+  final double totalPrice;
+  final String paymentMethod;
+
+  const ReviewSummaryPage({
+    super.key,
+    required this.event,
+    required this.seatCount,
+    required this.totalPrice,
+    required this.paymentMethod,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final taxAmount = totalPrice * 0.1; // 10% tax
+    final grandTotal = totalPrice + taxAmount;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text("Review Summary"),
+        title: const Text("Review Summary"),
         centerTitle: true,
       ),
       body: Column(
@@ -33,28 +47,30 @@ class ReviewSummaryPage extends StatelessWidget {
                             height: 80,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(10),
-                              color: Colors.grey[300],
+                              image: DecorationImage(
+                                image: NetworkImage(event['imageUrl'] ?? ''),
+                                fit: BoxFit.cover,
+                              ),
                             ),
-                            child: Icon(Icons.event, size: 40),
                           ),
-                          SizedBox(width: 16),
+                          const SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  "National Music Festival",
-                                  style: TextStyle(
+                                  event['title'] ?? 'Event',
+                                  style: const TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold),
                                 ),
-                                SizedBox(height: 4),
-                                Text("Mon, Dec 24 - 18:00 to 23:00 PM"),
+                                const SizedBox(height: 4),
+                                Text(event['dateTime'] ?? ''),
                                 Row(
                                   children: [
-                                    Icon(Icons.location_on, size: 16),
-                                    SizedBox(width: 4),
-                                    Text("Grand Park, New York"),
+                                    const Icon(Icons.location_on, size: 16),
+                                    const SizedBox(width: 4),
+                                    Text(event['location'] ?? ''),
                                   ],
                                 ),
                               ],
@@ -64,7 +80,7 @@ class ReviewSummaryPage extends StatelessWidget {
                       ),
                     ),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
                   // User Details Card
                   Card(
@@ -76,14 +92,14 @@ class ReviewSummaryPage extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          buildUserDetailRow("Full Name", "Andrew Ainsley"),
-                          buildUserDetailRow("Phone", "+1 111 467 378 399"),
-                          buildUserDetailRow("Email", "andrew_ainsley@yo.com"),
+                          _buildUserDetailRow("Full Name", "Andrew Ainsley"),
+                          _buildUserDetailRow("Phone", "+1 111 467 378 399"),
+                          _buildUserDetailRow("Email", "andrew_ainsley@yo.com"),
                         ],
                       ),
                     ),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
                   // Seat and Payment Summary
                   Card(
@@ -94,15 +110,20 @@ class ReviewSummaryPage extends StatelessWidget {
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
                         children: [
-                          buildSummaryRow("1 Seat (Economy)", "\$50.00"),
-                          buildSummaryRow("Tax", "\$5.00"),
-                          Divider(),
-                          buildSummaryRow("Total", "\$55.00"),
+                          _buildSummaryRow(
+                              "$seatCount Seat${seatCount > 1 ? 's' : ''} (${event['category'] ?? 'General'})",
+                              "\$${totalPrice.toStringAsFixed(2)}"),
+                          _buildSummaryRow(
+                              "Tax (10%)", "\$${taxAmount.toStringAsFixed(2)}"),
+                          const Divider(),
+                          _buildSummaryRow(
+                              "Total", "\$${grandTotal.toStringAsFixed(2)}",
+                              isTotal: true),
                         ],
                       ),
                     ),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
                   // Payment Method
                   Card(
@@ -110,11 +131,11 @@ class ReviewSummaryPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: ListTile(
-                      leading: Icon(Icons.credit_card, size: 40),
-                      title: Text("MasterCard •••• 4679"),
+                      leading: _getPaymentMethodIcon(paymentMethod),
+                      title: Text(_formatPaymentMethod(paymentMethod)),
                       trailing: TextButton(
-                        onPressed: () {},
-                        child: Text("Change",
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text("Change",
                             style: TextStyle(color: Colors.blue)),
                       ),
                     ),
@@ -129,16 +150,22 @@ class ReviewSummaryPage extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => EnterPinPage()),
+                  MaterialPageRoute(
+                    builder: (context) => EnterPinPage(
+                        // event: event,
+                        // seatCount: seatCount,
+                        // totalAmount: grandTotal,
+                        ),
+                  ),
                 );
               },
               style: ElevatedButton.styleFrom(
-                minimumSize: Size(double.infinity, 50),
+                minimumSize: const Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              child: Text("Continue"),
+              child: const Text("Continue"),
             ),
           ),
         ],
@@ -146,29 +173,57 @@ class ReviewSummaryPage extends StatelessWidget {
     );
   }
 
-  Widget buildUserDetailRow(String label, String value) {
+  Widget _buildUserDetailRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: Colors.grey)),
-          Text(value, style: TextStyle(fontWeight: FontWeight.bold)),
+          Text(label, style: const TextStyle(color: Colors.grey)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
         ],
       ),
     );
   }
 
-  Widget buildSummaryRow(String label, String value) {
+  Widget _buildSummaryRow(String label, String value, {bool isTotal = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label),
-          Text(value, style: TextStyle(fontWeight: FontWeight.bold)),
+          Text(
+            value,
+            style: TextStyle(
+              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+              color: isTotal ? Colors.green : null,
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  Icon _getPaymentMethodIcon(String method) {
+    switch (method.toLowerCase()) {
+      case 'credit card':
+        return const Icon(Icons.credit_card, size: 40);
+      case 'easypaisa':
+        return const Icon(Icons.account_balance_wallet, size: 40);
+      case 'jazzcash':
+        return const Icon(Icons.money, size: 40);
+      default:
+        return const Icon(Icons.payment, size: 40);
+    }
+  }
+
+  String _formatPaymentMethod(String method) {
+    switch (method.toLowerCase()) {
+      case 'credit card':
+        return 'Credit Card •••• 4679'; // Masked for security
+      default:
+        return method;
+    }
   }
 }

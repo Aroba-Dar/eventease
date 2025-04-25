@@ -2,12 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
-import 'add_new_card_page.dart';
-import 'review_summary_page.dart';
+import 'package:event_ease/add_new_card_page.dart';
+import 'package:event_ease/review_summary_page.dart';
 
 class PaymentSelectionPage extends StatefulWidget {
-  const PaymentSelectionPage({super.key});
+  final int eventId;
+  final int seatCount;
+  final double totalPrice;
+  final Map<String, dynamic> event;
+
+  const PaymentSelectionPage({
+    super.key,
+    required this.eventId,
+    required this.seatCount,
+    required this.totalPrice,
+    required this.event,
+  });
 
   @override
   _PaymentSelectionPageState createState() => _PaymentSelectionPageState();
@@ -165,7 +175,14 @@ class _PaymentSelectionPageState extends State<PaymentSelectionPage> {
               );
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ReviewSummaryPage()),
+                MaterialPageRoute(
+                  builder: (context) => ReviewSummaryPage(
+                    event: widget.event,
+                    seatCount: widget.seatCount,
+                    totalPrice: widget.totalPrice,
+                    paymentMethod: methodName,
+                  ),
+                ),
               );
             },
             child: const Text("OK"),
@@ -176,18 +193,17 @@ class _PaymentSelectionPageState extends State<PaymentSelectionPage> {
   }
 
   Future<void> _makeStripePayment() async {
-    setState(() {
-      _isProcessing = true;
-    });
+    setState(() => _isProcessing = true);
 
     try {
-      // 1. Create payment intent on your server
       final response = await http.post(
         Uri.parse('http://192.168.1.6:8081/api/stripe/create-payment-intent'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'amount': 1000, // amount in cents
+          'amount': (widget.totalPrice * 100).toInt(), // Convert to cents
           'currency': 'usd',
+          'eventId': widget.eventId,
+          'seatCount': widget.seatCount,
         }),
       );
 
@@ -195,42 +211,44 @@ class _PaymentSelectionPageState extends State<PaymentSelectionPage> {
         final responseData = jsonDecode(response.body);
         final clientSecret = responseData['clientSecret'];
 
-        // 2. Confirm payment with card details
         await Stripe.instance.confirmPayment(
           paymentIntentClientSecret: clientSecret,
           data: PaymentMethodParams.card(
             paymentMethodData: PaymentMethodData(
-              billingDetails: const BillingDetails(
-                  // Add billing details if needed
-                  // email: 'user@example.com',
-                  ),
+              billingDetails: BillingDetails(
+                email: 'user@example.com', // Get from user data
+                name: widget.event['organizer'] ?? 'Event Attendee',
+              ),
             ),
           ),
         );
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Payment successful!")),
-        );
+        if (!mounted) return;
+
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => ReviewSummaryPage()),
+          MaterialPageRoute(
+            builder: (context) => ReviewSummaryPage(
+              event: widget.event,
+              seatCount: widget.seatCount,
+              totalPrice: widget.totalPrice,
+              paymentMethod: 'Credit Card',
+            ),
+          ),
         );
       } else {
-        throw Exception('Failed to create PaymentIntent: ${response.body}');
+        throw Exception('Payment failed: ${response.body}');
       }
-    } on StripeException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text('Error from Stripe: ${e.error.localizedMessage}')),
-      );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
     } finally {
-      setState(() {
-        _isProcessing = false;
-      });
+      if (mounted) {
+        setState(() => _isProcessing = false);
+      }
     }
   }
 }
