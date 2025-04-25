@@ -2,6 +2,7 @@ import 'package:event_ease/seat_count_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class BookEventPage extends StatefulWidget {
   final Map<String, dynamic> event;
@@ -20,14 +21,12 @@ class _BookEventPageState extends State<BookEventPage> {
   final _dobController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _passwordController =
-      TextEditingController(); // New password controller
+  final _passwordController = TextEditingController();
 
   String? selectedGender;
   String? selectedCountry;
 
-  final String apiUrl =
-      'http://192.168.1.6:8081/users/register'; // Update API URL for user registration
+  final String apiUrl = 'http://192.168.1.6:8081/users/register';
 
   Future<void> _submitForm() async {
     final Map<String, dynamic> userData = {
@@ -37,7 +36,7 @@ class _BookEventPageState extends State<BookEventPage> {
       "dateOfBirth": _dobController.text,
       "email": _emailController.text,
       "phone": _phoneController.text,
-      "password": _passwordController.text, // Adding password
+      "password": _passwordController.text,
       "country": selectedCountry,
       "acceptedTerms": isAccepted
     };
@@ -50,17 +49,32 @@ class _BookEventPageState extends State<BookEventPage> {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        // ignore: unused_local_variable
+        final data = jsonDecode(response.body);
+
+        // Save user details to shared preferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isGuest', false);
+        await prefs.setBool('isLoggedIn', true);
+        await prefs.setString(
+            'userName', '${_nameController.text} ${_lastNameController.text}');
+        await prefs.setString('userEmail', _emailController.text);
+        await prefs.setString('userPhone', _phoneController.text);
+        await prefs.setString('firstName', _nameController.text);
+        await prefs.setString('lastName', _lastNameController.text);
+        await prefs.setString('gender', selectedGender ?? 'Male');
+        await prefs.setString('country', selectedCountry ?? '');
+        await prefs.setString('dateOfBirth', _dobController.text);
+
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("User registered successfully!")),
+          SnackBar(content: Text("Registration successful!")),
         );
 
-        // Redirect to BookEventSeatPage after successful registration
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (_) => BookEventSeatPage(
-                event: widget.event,
-                eventId: widget.event['id']), // Pass eventId here
+                event: widget.event, eventId: widget.event['id']),
           ),
         );
       } else {
@@ -76,6 +90,7 @@ class _BookEventPageState extends State<BookEventPage> {
     }
   }
 
+  // Rest of the code remains the same...
   @override
   Widget build(BuildContext context) {
     final eventName = widget.event['name'] ?? "Book Event";
@@ -102,7 +117,7 @@ class _BookEventPageState extends State<BookEventPage> {
             _buildTextField("Email", "andrew@example.com", _emailController),
             _buildTextField("Phone Number", "+123456789", _phoneController),
             _buildTextField("Password", "********", _passwordController,
-                obscureText: true), // Password field
+                obscureText: true),
             _buildDropdownField("Country", ["United States", "Canada", "UK"]),
             SizedBox(height: 16),
             Row(
@@ -153,6 +168,7 @@ class _BookEventPageState extends State<BookEventPage> {
     );
   }
 
+  // Rest of the helper methods remain the same...
   Widget _buildTextField(
       String label, String placeholder, TextEditingController controller,
       {bool obscureText = false}) {

@@ -75,12 +75,14 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('isGuest', false);
         await prefs.setBool('isLoggedIn', true);
-        await prefs.setString('email', data['email'] ?? '');
+        await prefs.setString(
+            'userName', '${data['firstName'] ?? ''} ${data['lastName'] ?? ''}');
+        await prefs.setString('userEmail', data['email'] ?? '');
+        await prefs.setString('userPhone', data['phone'] ?? '');
         await prefs.setString('firstName', data['firstName'] ?? '');
         await prefs.setString('lastName', data['lastName'] ?? '');
         await prefs.setString('gender', data['gender'] ?? 'Male');
         await prefs.setString('country', data['country'] ?? '');
-        await prefs.setString('phone', data['phone'] ?? '');
         await prefs.setString('dateOfBirth', data['dateOfBirth'] ?? '');
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -102,6 +104,7 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
     }
   }
 
+  // Rest of the code remains the same...
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -169,7 +172,9 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.setBool('isGuest', true);
                 await prefs.setBool('isLoggedIn', false);
-                await prefs.setString('firstName', 'Guest');
+                await prefs.setString('userName', 'Guest');
+                await prefs.setString('userEmail', '');
+                await prefs.setString('userPhone', '');
                 await prefs.setString('gender', 'Male');
                 Navigator.pushReplacementNamed(context, '/home');
               },
@@ -181,6 +186,7 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
     );
   }
 
+  // Rest of the helper methods remain the same...
   Widget _buildTextField(String label, TextEditingController controller,
       {bool obscureText = false}) {
     return Padding(
