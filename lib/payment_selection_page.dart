@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
 import 'add_new_card_page.dart';
 import 'review_summary_page.dart';
 
@@ -15,6 +16,14 @@ class PaymentSelectionPage extends StatefulWidget {
 class _PaymentSelectionPageState extends State<PaymentSelectionPage> {
   int _selectedPaymentMethod = 1;
   bool _isProcessing = false;
+  final CardFormEditController _controller = CardFormEditController();
+
+  @override
+  void initState() {
+    super.initState();
+    Stripe.publishableKey =
+        'pk_test_51RHjJWIpuAYC0tEaNBS68cmQJJXfItuAONhWEpPSmqHrvRAwZvjynvFiVv4TvB3E7Ar5N4uoU1D7Wz5Y8tAyWM3v00ux1mE43p';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,78 +31,88 @@ class _PaymentSelectionPageState extends State<PaymentSelectionPage> {
       appBar: AppBar(
         title: const Text("Payments"),
         centerTitle: true,
+        backgroundColor: Colors.purple[100],
+        foregroundColor: Colors.black,
       ),
-      body: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Select the payment method you want to use.",
-                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                ),
-                const SizedBox(height: 20),
-                _buildPaymentOption(
-                    1, "EasyPaisa", Icons.account_balance_wallet),
-                const SizedBox(height: 10),
-                _buildPaymentOption(2, "JazzCash", Icons.money),
-                const SizedBox(height: 10),
-                _buildPaymentOption(
-                    3, "Credit Card (Stripe)", Icons.credit_card),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => AddNewCardPage()),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Select the payment method you want to use.",
+                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                   ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.purple[100],
-                    foregroundColor: Colors.purple[700],
-                    minimumSize: const Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                  const SizedBox(height: 20),
+                  _buildPaymentOption(
+                      1, "EasyPaisa", Icons.account_balance_wallet),
+                  const SizedBox(height: 10),
+                  _buildPaymentOption(2, "JazzCash", Icons.money),
+                  const SizedBox(height: 10),
+                  _buildPaymentOption(
+                      3, "Credit Card (Stripe)", Icons.credit_card),
+                  const SizedBox(height: 20),
+                  if (_selectedPaymentMethod == 3)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12.0),
+                      child: CardFormField(
+                        controller: _controller,
+                        style: CardFormStyle(
+                          borderColor: Colors.purple.shade100,
+                          borderRadius: 12,
+                          textColor: Colors.black87,
+                          backgroundColor: Colors.grey[50],
+                          borderWidth: 2,
+                        ),
+                      ),
                     ),
-                  ),
-                  child: const Text("Add New Card"),
-                ),
-                const Spacer(),
-                ElevatedButton(
-                  onPressed: _isProcessing
-                      ? null
-                      : () {
-                          if (_selectedPaymentMethod == 1) {
-                            _showMockPaymentDialog("EasyPaisa");
-                          } else if (_selectedPaymentMethod == 2) {
-                            _showMockPaymentDialog("JazzCash");
-                          } else if (_selectedPaymentMethod == 3) {
-                            _makeStripePayment();
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                  ElevatedButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => AddNewCardPage()),
                     ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.purple[100],
+                      foregroundColor: Colors.purple[700],
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text("Add New Card"),
                   ),
-                  child: _isProcessing
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text("Continue"),
-                ),
-              ],
+                  const SizedBox(height: 30),
+                  ElevatedButton(
+                    onPressed: _isProcessing ? null : _handlePayment,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.purple,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: _isProcessing
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text("Continue"),
+                  ),
+                ],
+              ),
             ),
-          ),
-          if (_isProcessing)
-            const ModalBarrier(
-              dismissible: false,
-              color: Colors.black54,
-            ),
-          if (_isProcessing)
-            const Center(
-              child: CircularProgressIndicator(),
-            ),
-        ],
+            if (_isProcessing)
+              const ModalBarrier(
+                dismissible: false,
+                color: Colors.black54,
+              ),
+            if (_isProcessing)
+              const Center(
+                child: CircularProgressIndicator(),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -114,11 +133,21 @@ class _PaymentSelectionPageState extends State<PaymentSelectionPage> {
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: Colors.grey.shade300),
       ),
       tileColor: Colors.grey.shade100,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
     );
+  }
+
+  void _handlePayment() {
+    if (_selectedPaymentMethod == 1) {
+      _showMockPaymentDialog("EasyPaisa");
+    } else if (_selectedPaymentMethod == 2) {
+      _showMockPaymentDialog("JazzCash");
+    } else if (_selectedPaymentMethod == 3) {
+      _makeStripePayment();
+    }
   }
 
   void _showMockPaymentDialog(String methodName) {
@@ -152,43 +181,33 @@ class _PaymentSelectionPageState extends State<PaymentSelectionPage> {
     });
 
     try {
-      // Step 1: Call your backend to create a PaymentIntent
+      // 1. Create payment intent on your server
       final response = await http.post(
         Uri.parse('http://192.168.1.6:8081/api/stripe/create-payment-intent'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'amount': 1000, // Amount in cents (1000 = $10.00)
+          'amount': 1000, // amount in cents
           'currency': 'usd',
         }),
       );
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        final paymentIntentClientSecret = responseData['clientSecret'];
+        final clientSecret = responseData['clientSecret'];
 
-        // Step 2: Confirm the payment using the clientSecret
+        // 2. Confirm payment with card details
         await Stripe.instance.confirmPayment(
-          paymentIntentClientSecret: paymentIntentClientSecret,
+          paymentIntentClientSecret: clientSecret,
           data: PaymentMethodParams.card(
             paymentMethodData: PaymentMethodData(
-              billingDetails: BillingDetails(
-                email: 'customer@example.com',
-                phone: '+1234567890',
-                name: 'John Doe',
-                address: Address(
-                  city: 'New York',
-                  country: 'US',
-                  line1: '123 Main St',
-                  line2: '',
-                  postalCode: '10001',
-                  state: 'NY',
-                ),
-              ),
+              billingDetails: const BillingDetails(
+                  // Add billing details if needed
+                  // email: 'user@example.com',
+                  ),
             ),
           ),
         );
 
-        // Step 3: Handle successful payment
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Payment successful!")),
         );
@@ -199,11 +218,15 @@ class _PaymentSelectionPageState extends State<PaymentSelectionPage> {
       } else {
         throw Exception('Failed to create PaymentIntent: ${response.body}');
       }
+    } on StripeException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Error from Stripe: ${e.error.localizedMessage}')),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Payment failed: ${e.toString()}")),
+        SnackBar(content: Text('Error: ${e.toString()}')),
       );
-      debugPrint("Payment error: $e");
     } finally {
       setState(() {
         _isProcessing = false;
