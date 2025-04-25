@@ -29,11 +29,11 @@ class _PaymentSelectionPageState extends State<PaymentSelectionPage> {
               style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             ),
             SizedBox(height: 20),
-            _buildPaymentOption(1, "PayPal", Icons.account_balance_wallet),
+            _buildPaymentOption(1, "EasyPaisa", Icons.account_balance_wallet),
             SizedBox(height: 10),
-            _buildPaymentOption(2, "Google Pay", Icons.payment),
+            _buildPaymentOption(2, "JazzCash", Icons.money),
             SizedBox(height: 10),
-            _buildPaymentOption(3, "Apple Pay", Icons.phone_iphone),
+            _buildPaymentOption(3, "Credit Card (Stripe)", Icons.credit_card),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () => Navigator.push(
@@ -52,10 +52,15 @@ class _PaymentSelectionPageState extends State<PaymentSelectionPage> {
             ),
             Spacer(),
             ElevatedButton(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ReviewSummaryPage()),
-              ),
+              onPressed: () {
+                if (_selectedPaymentMethod == 1) {
+                  _showMockPaymentDialog("EasyPaisa");
+                } else if (_selectedPaymentMethod == 2) {
+                  _showMockPaymentDialog("JazzCash");
+                } else if (_selectedPaymentMethod == 3) {
+                  _makeStripePayment(); // Placeholder function
+                }
+              },
               style: ElevatedButton.styleFrom(
                 minimumSize: Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(
@@ -90,6 +95,54 @@ class _PaymentSelectionPageState extends State<PaymentSelectionPage> {
       ),
       tileColor: Colors.grey.shade100,
       contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    );
+  }
+
+  void _showMockPaymentDialog(String methodName) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("$methodName Payment"),
+        content: Text("Simulated payment successful via $methodName!"),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("$methodName Payment Confirmed!")),
+              );
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ReviewSummaryPage()),
+              );
+            },
+            child: Text("OK"),
+          )
+        ],
+      ),
+    );
+  }
+
+  void _makeStripePayment() {
+    // Stripe integration placeholder
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Stripe Payment"),
+        content: Text("Stripe payment integration goes here."),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ReviewSummaryPage()),
+              );
+            },
+            child: Text("OK"),
+          )
+        ],
+      ),
     );
   }
 }

@@ -26,7 +26,8 @@ class _BookEventPageState extends State<BookEventPage> {
   String? selectedGender;
   String? selectedCountry;
 
-  final String apiUrl = 'http://192.168.1.6:8081/booking-form/add';
+  final String apiUrl =
+      'http://192.168.1.6:8081/users/register'; // Update API URL for user registration
 
   Future<void> _submitForm() async {
     final Map<String, dynamic> userData = {
@@ -52,10 +53,15 @@ class _BookEventPageState extends State<BookEventPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("User registered successfully!")),
         );
-        MaterialPageRoute(
-          builder: (_) => BookEventSeatPage(
-              event: widget.event,
-              eventId: widget.event['id']), // Pass eventId here
+
+        // Redirect to BookEventSeatPage after successful registration
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => BookEventSeatPage(
+                event: widget.event,
+                eventId: widget.event['id']), // Pass eventId here
+          ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
