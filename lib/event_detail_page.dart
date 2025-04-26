@@ -1,6 +1,5 @@
 import 'package:add_2_calendar/add_2_calendar.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:event_ease/attendees_page.dart';
 import 'package:event_ease/book_event_form_page.dart';
 import 'package:event_ease/seat_count_page.dart';
 import 'package:flutter/material.dart';
@@ -126,7 +125,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
           MaterialPageRoute(
             builder: (_) => BookEventSeatPage(
               event: widget.event,
-              eventId: eventId, // Event ID is passed here
+              eventId: eventId,
             ),
           ),
         );
@@ -146,7 +145,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
         MaterialPageRoute(
           builder: (_) => BookEventSeatPage(
             event: widget.event,
-            eventId: eventId, // Event ID is passed here
+            eventId: eventId,
           ),
         ),
       );
@@ -244,25 +243,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
                       style: const TextStyle(
                           fontSize: 24, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Chip(label: Text(event['category'] ?? '')),
-                      const SizedBox(width: 8),
-                      GestureDetector(
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => AttendeesPage()),
-                        ),
-                        child: const Row(
-                          children: [
-                            Text("20,000+ Going",
-                                style: TextStyle(color: Colors.grey)),
-                            Icon(Icons.arrow_forward, color: Colors.grey),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                  Chip(label: Text(event['category'] ?? '')),
                   const SizedBox(height: 16),
                   Row(
                     children: [
@@ -318,18 +299,10 @@ class _EventDetailsPageState extends State<EventDetailsPage>
                   const SizedBox(height: 8),
                   Text(event['description'] ?? 'No description available.'),
                   const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text("Gallery (Pre-Event)",
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold)),
-                      TextButton(
-                        onPressed: () {},
-                        child: const Text("See All"),
-                      ),
-                    ],
-                  ),
+                  const Text("Gallery (Pre-Event)",
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
@@ -351,17 +324,6 @@ class _EventDetailsPageState extends State<EventDetailsPage>
                                 ),
                               ))
                           .toList(),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    height: 200,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Center(
-                      child: Icon(Icons.map, size: 50, color: Colors.grey),
                     ),
                   ),
                   const SizedBox(height: 80),

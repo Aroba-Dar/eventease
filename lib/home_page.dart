@@ -29,6 +29,52 @@ class _HomePageState extends State<HomePage> {
     fetchEvents();
   }
 
+  DateTime? parseCustomDate(String dateString) {
+    try {
+      // Example format: "Mon, Jun 3 . 14:00 - 18:00 PM"
+      final parts = dateString.split(' . ');
+      if (parts.length != 2) return null;
+
+      final datePart = parts[0]; // "Mon, Jun 3"
+      final timePart = parts[1].split(' - ')[0]; // "14:00"
+
+      final now = DateTime.now();
+      final year = now.year;
+
+      // Parse month and day from "Jun 3"
+      final dateParts = datePart.split(', ')[1].split(' ');
+      final monthStr = dateParts[0]; // "Jun"
+      final day = int.parse(dateParts[1]); // 3
+
+      // Parse time from "14:00"
+      final timeParts = timePart.split(':');
+      final hour = int.parse(timeParts[0]);
+      final minute = int.parse(timeParts[1]);
+
+      // Convert month string to number
+      const months = {
+        'Jan': 1,
+        'Feb': 2,
+        'Mar': 3,
+        'Apr': 4,
+        'May': 5,
+        'Jun': 6,
+        'Jul': 7,
+        'Aug': 8,
+        'Sep': 9,
+        'Oct': 10,
+        'Nov': 11,
+        'Dec': 12
+      };
+
+      final month = months[monthStr] ?? 1;
+
+      return DateTime(year, month, day, hour, minute);
+    } catch (e) {
+      return null;
+    }
+  }
+
   Future<void> loadUserSession() async {
     final prefs = await SharedPreferences.getInstance();
     final savedEmail = prefs.getString('email');
@@ -98,6 +144,32 @@ class _HomePageState extends State<HomePage> {
         .toList();
   }
 
+  List<Event> getFeaturedEvents() {
+    // Create a list of events with parsed dates
+    final eventsWithDates = allEvents.map((event) {
+      final parsedDate = parseCustomDate(event.dateTime);
+      return {
+        'event': event,
+        'date': parsedDate,
+        'isValid': parsedDate != null
+      };
+    }).toList();
+
+    // Filter out events with invalid dates and sort by date proximity
+    final validEvents =
+        eventsWithDates.where((e) => e['isValid'] as bool).toList();
+
+    validEvents.sort((a, b) {
+      final now = DateTime.now();
+      final aDate = a['date'] as DateTime;
+      final bDate = b['date'] as DateTime;
+      return aDate.difference(now).abs().compareTo(bDate.difference(now).abs());
+    });
+
+    // Return only the first 4 valid events (closest to now)
+    return validEvents.take(4).map((e) => e['event'] as Event).toList();
+  }
+
   Widget _buildProfileAvatar() {
     String imageAsset = gender == 'male'
         ? 'assets/images/male.jpeg'
@@ -111,6 +183,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final filteredEvents = getFilteredEvents();
+    final featuredEvents = getFeaturedEvents();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -166,90 +239,86 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 16),
 
               // Featured Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
-                  Text('Featured',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  Text('See All',
-                      style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue)),
-                ],
-              ),
+              const Text('Featured',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
 
-              // Featured Events (All)
+              // Featured Events (Closest to current date/time)
               SizedBox(
                 height: 320,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: allEvents.length,
-                  itemBuilder: (context, index) {
-                    final event = allEvents[index];
-                    return Container(
-                      width: 260,
-                      margin: const EdgeInsets.only(right: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: const [
-                          BoxShadow(color: Colors.black12, blurRadius: 5)
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ClipRRect(
-                            borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(12)),
-                            child: Image.network(
-                              event.imageUrl,
-                              height: 140,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  Container(
-                                      height: 140,
-                                      color: Colors.grey.shade300,
-                                      child: const Icon(Icons.broken_image,
-                                          color: Colors.grey)),
+                child: featuredEvents.isEmpty
+                    ? const Center(child: Text('No upcoming events'))
+                    : ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: featuredEvents.length,
+                        itemBuilder: (context, index) {
+                          final event = featuredEvents[index];
+                          return Container(
+                            width: 260,
+                            margin: const EdgeInsets.only(right: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: const [
+                                BoxShadow(color: Colors.black12, blurRadius: 5)
+                              ],
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(event.title,
-                                    style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold)),
-                                const SizedBox(height: 4),
-                                Text(event.dateTime,
-                                    style: const TextStyle(
-                                        fontSize: 12, color: Colors.blue)),
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.location_on,
-                                        size: 14, color: Colors.blue),
-                                    const SizedBox(width: 4),
-                                    Text(event.location,
-                                        style: const TextStyle(
-                                            fontSize: 12, color: Colors.grey)),
-                                  ],
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(12)),
+                                  child: Image.network(
+                                    event.imageUrl,
+                                    height: 140,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            Container(
+                                                height: 140,
+                                                color: Colors.grey.shade300,
+                                                child: const Icon(
+                                                    Icons.broken_image,
+                                                    color: Colors.grey)),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(event.title,
+                                          style: const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold)),
+                                      const SizedBox(height: 4),
+                                      Text(event.dateTime,
+                                          style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.blue)),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.location_on,
+                                              size: 14, color: Colors.blue),
+                                          const SizedBox(width: 4),
+                                          Text(event.location,
+                                              style: const TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey)),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
-                          ),
-                        ],
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
               ),
               const SizedBox(height: 16),
 
@@ -299,19 +368,65 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 16),
 
               // Popular Event Cards (Filtered)
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: filteredEvents.length,
-                itemBuilder: (context, index) {
-                  final event = filteredEvents[index];
-                  return ListTile(
-                    leading: Image.network(event.imageUrl, width: 60),
-                    title: Text(event.title),
-                    subtitle: Text(event.dateTime),
-                  );
-                },
-              ),
+              filteredEvents.isEmpty
+                  ? const Center(child: Text('No events in this category'))
+                  : ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: filteredEvents.length,
+                      itemBuilder: (context, index) {
+                        final event = filteredEvents[index];
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: const [
+                              BoxShadow(color: Colors.black12, blurRadius: 3)
+                            ],
+                          ),
+                          child: ListTile(
+                            leading: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.network(
+                                event.imageUrl,
+                                width: 60,
+                                height: 60,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Container(
+                                        width: 60,
+                                        height: 60,
+                                        color: Colors.grey.shade300,
+                                        child: const Icon(Icons.broken_image,
+                                            color: Colors.grey)),
+                              ),
+                            ),
+                            title: Text(event.title,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold)),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(event.dateTime,
+                                    style: const TextStyle(color: Colors.blue)),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.location_on,
+                                        size: 14, color: Colors.blue),
+                                    const SizedBox(width: 4),
+                                    Text(event.location,
+                                        style: const TextStyle(
+                                            color: Colors.grey)),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
             ],
           ),
         ),
