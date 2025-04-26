@@ -52,9 +52,11 @@ class CategoryBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final categories = [
       {'icon': Icons.check, 'text': 'All'},
-      {'icon': Icons.music_note, 'text': 'Music'},
+      {'icon': Icons.music_note, 'text': 'Workshop'},
       {'icon': Icons.palette, 'text': 'Art'},
-      {'icon': Icons.build, 'text': 'Workshops'},
+      {'icon': Icons.build, 'text': 'Sports'},
+      {'icon': Icons.build, 'text': 'Festival'},
+      {'icon': Icons.build, 'text': 'Music'},
     ];
 
     return SingleChildScrollView(
