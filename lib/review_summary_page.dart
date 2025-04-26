@@ -170,7 +170,9 @@ class _ReviewSummaryPageState extends State<ReviewSummaryPage> {
                             trailing: TextButton(
                               onPressed: () => Navigator.pop(context),
                               child: const Text("Change",
-                                  style: TextStyle(color: Colors.blue)),
+                                  style: TextStyle(
+                                      color:
+                                          Color.fromARGB(255, 156, 39, 176))),
                             ),
                           ),
                         ),
@@ -202,7 +204,9 @@ class _ReviewSummaryPageState extends State<ReviewSummaryPage> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: const Text("Continue"),
+                    child: const Text("Continue",
+                        style: TextStyle(
+                            color: Color.fromARGB(255, 156, 39, 176))),
                   ),
                 ),
               ],

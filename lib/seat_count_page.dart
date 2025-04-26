@@ -102,14 +102,14 @@ class _BookEventSeatPageState extends State<BookEventSeatPage> {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent,
+                backgroundColor: Color.fromARGB(255, 156, 39, 176),
                 minimumSize: const Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30)),
               ),
               child: Text(
                 "Continue - \$${(isEconomy ? seatCount * ticketPrice : seatCount * vipPrice).toStringAsFixed(2)}",
-                style: const TextStyle(fontSize: 18),
+                style: const TextStyle(color: Colors.white, fontSize: 18),
               ),
             ),
           ),
@@ -132,10 +132,15 @@ class _BookEventSeatPageState extends State<BookEventSeatPage> {
                 style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: selected ? Colors.blueAccent : Colors.grey)),
+                    color: selected
+                        ? Color.fromARGB(255, 156, 39, 176)
+                        : Colors.grey)),
             const SizedBox(height: 4),
             if (selected)
-              Container(height: 2, width: 60, color: Colors.blueAccent),
+              Container(
+                  height: 2,
+                  width: 60,
+                  color: Color.fromARGB(255, 156, 39, 176)),
           ],
         ),
       ),

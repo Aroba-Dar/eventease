@@ -48,7 +48,10 @@ class _PopularEventsPageState extends State<PopularEventsPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Popular Events"),
+        title: const Text(
+          "Popular Events",
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        ),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -105,11 +108,13 @@ class EventCard extends StatelessWidget {
                 'id': event['id'],
                 'name': event['title'] ?? '',
                 'category': event['category'] ?? '',
-                'date': event['dateTime']?.split(' ')[0] ?? '',
-                'time': event['dateTime']?.split(' ')[1] ?? '',
+                'date': event['dateTime']?.split('.')[0] ?? '',
+                'time': event['dateTime']?.split('.')[1] ?? '',
                 'location': event['location'] ?? '',
                 'imageUrl': event['imageUrl'] ?? '',
-                'description': event['description'] ?? '',
+                'description':
+                    'Kickstart your entrepreneurial journey at the Startup Funding Workshop in Karachi! Learn how to secure funding, build a strong pitch, and connect with investors. Perfect for early-stage founders and anyone passionate about startups. Grow your idea into the next big success!',
+
                 'organizerName':
                     event['organizer'] ?? '', // Corrected to use organizer
                 'organizerImage': event['organizerImage'] ??
@@ -151,7 +156,8 @@ class EventCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Text(
                 event['dateTime'] ?? '',
-                style: const TextStyle(color: Colors.grey),
+                style:
+                    const TextStyle(color: Color.fromARGB(255, 156, 39, 176)),
               ),
             ),
           ],

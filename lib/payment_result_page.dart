@@ -32,14 +32,14 @@ class PaymentResultPopup extends StatelessWidget {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
+                  color: Color.fromARGB(255, 156, 39, 176).withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Center(
                   child: Icon(
                     Icons.check,
                     size: 50,
-                    color: Colors.blue,
+                    color: Color.fromARGB(255, 156, 39, 176),
                   ),
                 ),
               ),
@@ -49,7 +49,7 @@ class PaymentResultPopup extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Colors.blue,
+                  color: Color.fromARGB(255, 156, 39, 176),
                 ),
               ),
               const SizedBox(height: 8),
@@ -63,7 +63,7 @@ class PaymentResultPopup extends StatelessWidget {
                 children: [
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: Color.fromARGB(255, 156, 39, 176),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -83,7 +83,8 @@ class PaymentResultPopup extends StatelessWidget {
                         ),
                       );
                     },
-                    child: const Text('View E-Ticket'),
+                    child: const Text('View E-Ticket',
+                        style: TextStyle(color: Colors.white)),
                   ),
                   const SizedBox(width: 12),
                   OutlinedButton(
@@ -93,7 +94,9 @@ class PaymentResultPopup extends StatelessWidget {
                       ),
                     ),
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel'),
+                    child: const Text('Cancel',
+                        style: TextStyle(
+                            color: Color.fromARGB(255, 156, 39, 176))),
                   ),
                 ],
               ),

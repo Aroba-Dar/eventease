@@ -78,7 +78,8 @@ class ETicketPage extends StatelessWidget {
 
             ElevatedButton(
               onPressed: () => _downloadTicket(context),
-              child: Text("Download Ticket"),
+              child: Text("Download Ticket",
+                  style: TextStyle(color: Color.fromARGB(255, 156, 39, 176))),
               style: ElevatedButton.styleFrom(
                 minimumSize: Size(double.infinity, 50),
               ),

@@ -48,6 +48,11 @@ dependencies:
   stripe_android: ^11.5.0
   flutter_stripe: ^11.5.0
   dio: ^5.8.0+1
+  path_provider: ^2.1.5
+  open_file: ^3.5.10
+  intl: ^0.20.2
+  mobile_scanner: ^6.0.10
+  provider: ^6.1.4
   
 dev_dependencies:
   flutter_test:

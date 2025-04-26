@@ -243,11 +243,19 @@ class _EventDetailsPageState extends State<EventDetailsPage>
                       style: const TextStyle(
                           fontSize: 24, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
-                  Chip(label: Text(event['category'] ?? '')),
+                  Chip(
+                    label: Text(event['category'] ?? ''),
+                    side: BorderSide(
+                      color: Color.fromARGB(255, 156, 39,
+                          176), // Change this to your desired border color
+                      width: 1.0, // Adjust border width as needed
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      const Icon(Icons.calendar_today, color: Colors.blue),
+                      const Icon(Icons.calendar_today,
+                          color: Color.fromARGB(255, 156, 39, 176)),
                       const SizedBox(width: 8),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -261,7 +269,9 @@ class _EventDetailsPageState extends State<EventDetailsPage>
                       const Spacer(),
                       ElevatedButton(
                         onPressed: _addToCalendar,
-                        child: const Text("Add to Calendar"),
+                        child: const Text("Add to Calendar",
+                            style: TextStyle(
+                                color: Color.fromARGB(255, 156, 39, 176))),
                       ),
                     ],
                   ),
@@ -271,9 +281,11 @@ class _EventDetailsPageState extends State<EventDetailsPage>
                       const Icon(Icons.location_on, color: Colors.red),
                       const SizedBox(width: 8),
                       Expanded(child: Text(event['location'] ?? '')),
-                      TextButton(
+                      ElevatedButton(
                         onPressed: () => _launchMaps(event['location'] ?? ''),
-                        child: const Text("Get Directions"),
+                        child: const Text("Get Directions",
+                            style: TextStyle(
+                                color: Color.fromARGB(255, 156, 39, 176))),
                       ),
                     ],
                   ),
@@ -364,9 +376,10 @@ class _EventDetailsPageState extends State<EventDetailsPage>
           onPressed: _handleBooking,
           style: ElevatedButton.styleFrom(
             minimumSize: const Size(double.infinity, 50),
-            backgroundColor: Colors.blueAccent,
+            backgroundColor: Color.fromARGB(255, 156, 39, 176),
           ),
-          child: const Text("Book Event", style: TextStyle(fontSize: 18)),
+          child: const Text("Book Event",
+              style: TextStyle(fontSize: 18, color: Colors.white)),
         ),
       ),
     );
