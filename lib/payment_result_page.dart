@@ -1,102 +1,105 @@
 import 'package:flutter/material.dart';
-import 'e_ticket_page.dart'; // Ensure this import is correct
+import 'package:event_ease/e_ticket_page.dart';
 
 class PaymentResultPopup extends StatelessWidget {
-  final bool isSuccess;
   final String eventName;
+  final String eventDate;
+  final String eventLocation;
+  final String userName;
+  final String userContact;
+  final String bookingId;
 
   const PaymentResultPopup({
     super.key,
-    required this.isSuccess,
     required this.eventName,
+    required this.eventDate,
+    required this.eventLocation,
+    required this.userName,
+    required this.userContact,
+    required this.bookingId,
   });
 
   @override
   Widget build(BuildContext context) {
-    final String title = isSuccess ? 'Congratulations!' : 'Oops, Failed!';
-    final String message = isSuccess
-        ? 'You have successfully placed an order for $eventName.\nEnjoy the event!'
-        : 'Your payment failed.\nPlease check your internet connection then try again.';
-    final Color highlightColor = isSuccess ? Colors.blue : Colors.pink;
-    final String imagePath =
-        isSuccess ? 'assets/images/tick.png' : 'assets/images/cross.png';
-    final String mainButtonText = isSuccess ? 'View E-Ticket' : 'Try Again';
-
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: highlightColor.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Image.asset(
-                imagePath,
-                width: 50,
-                height: 50,
-                errorBuilder: (context, error, stackTrace) {
-                  return Icon(
-                    isSuccess ? Icons.check : Icons.close,
-                    size: 50,
-                    color: highlightColor,
-                  );
-                },
-              ),
-            ),
-          ),
-          SizedBox(height: 16),
-          Text(
-            title,
-            style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: highlightColor),
-          ),
-          SizedBox(height: 8),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: highlightColor,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  shape: BoxShape.circle,
                 ),
-                onPressed: () {
-                  if (isSuccess) {
-                    Navigator.pop(context); // Close the popup
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => ETicketPage()),
-                    );
-                  } else {
-                    Navigator.pop(context); // Close the popup
-                  }
-                },
-                child: Text(mainButtonText),
+                child: const Center(
+                  child: Icon(
+                    Icons.check,
+                    size: 50,
+                    color: Colors.blue,
+                  ),
+                ),
               ),
-              SizedBox(width: 12),
-              OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
+              const SizedBox(height: 16),
+              const Text(
+                'Congratulations!',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
                 ),
-                onPressed: () => Navigator.pop(context),
-                child: Text('Cancel'),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'You have successfully placed an order for $eventName.\nEnjoy the event!',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ETicketPage(
+                            eventName: eventName,
+                            eventDate: eventDate,
+                            eventLocation: eventLocation,
+                            userName: userName,
+                            userContact: userContact,
+                            bookingId: bookingId,
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text('View E-Ticket'),
+                  ),
+                  const SizedBox(width: 12),
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel'),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

@@ -1,4 +1,4 @@
-import 'package:event_ease/e_ticket_page.dart';
+import 'package:event_ease/payment_result_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -26,12 +26,13 @@ class EnterPinPage extends StatefulWidget {
 }
 
 class _EnterPinPageState extends State<EnterPinPage> {
-  List<String> otp = ['', '', '', '', '', '']; // 6-digit OTP
+  List<String> otp = ['', '', '', '', '', ''];
   int currentOtpIndex = 0;
   bool _isLoading = false;
-  String? _debugOtp;
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
+  OverlayEntry? _notificationEntry;
+  String? _lastGeneratedOtp;
 
   @override
   void initState() {
@@ -47,7 +48,13 @@ class _EnterPinPageState extends State<EnterPinPage> {
   void dispose() {
     _controller.dispose();
     _focusNode.dispose();
+    _removeNotification();
     super.dispose();
+  }
+
+  void _removeNotification() {
+    _notificationEntry?.remove();
+    _notificationEntry = null;
   }
 
   void _updateOtp() {
@@ -65,36 +72,101 @@ class _EnterPinPageState extends State<EnterPinPage> {
     });
   }
 
+  void _showOtpNotification(String otpCode) {
+    _removeNotification();
+    _lastGeneratedOtp = otpCode;
+
+    final overlay = Overlay.of(context);
+    _notificationEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).padding.top + 10,
+        left: 20,
+        right: 20,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.verified, color: Colors.green),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'Your OTP Code',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      Text(
+                        otpCode,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: _removeNotification,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(_notificationEntry!);
+    Future.delayed(const Duration(seconds: 10), _removeNotification);
+  }
+
   Future<void> _generateOtp() async {
     setState(() {
       _isLoading = true;
-      _debugOtp = null;
+      _controller.clear();
+      _updateOtp(); // Clear the OTP fields
     });
 
     try {
+      debugPrint('Generating OTP for ${widget.userEmail}');
       final response = await http.post(
         Uri.parse(
             'http://192.168.1.6:8081/api/otp/generate?email=${widget.userEmail}'),
       );
 
+      debugPrint(
+          'OTP Generation Response: ${response.statusCode} - ${response.body}');
+
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        setState(() {
-          _debugOtp =
-              responseData['debugOtp'] ?? '123456'; // Fallback for testing
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('OTP sent to ${widget.userEmail}'),
-            duration: Duration(seconds: 3),
-          ),
-        );
+        final otpCode = responseData['debugOtp'] ?? '123456';
+        _showOtpNotification(otpCode);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to generate OTP')),
+          SnackBar(content: Text('Failed to generate OTP: ${response.body}')),
         );
       }
     } catch (e) {
+      debugPrint('OTP Generation Error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.toString()}')),
       );
@@ -105,17 +177,24 @@ class _EnterPinPageState extends State<EnterPinPage> {
 
   Future<void> _verifyOtp() async {
     final enteredOtp = otp.join();
-
     if (enteredOtp.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Please enter complete 6-digit OTP")),
+        const SnackBar(content: Text("Please enter complete 6-digit OTP")),
       );
       return;
     }
 
     setState(() => _isLoading = true);
-
     try {
+      debugPrint('Verifying OTP: $enteredOtp for ${widget.userEmail}');
+
+      // For testing purposes, you can bypass the API call with this:
+      if (_lastGeneratedOtp != null && enteredOtp == _lastGeneratedOtp) {
+        debugPrint('OTP verification successful (local check)');
+        await _completeBooking();
+        return;
+      }
+
       final response = await http.post(
         Uri.parse('http://192.168.1.6:8081/api/otp/verify'),
         body: jsonEncode({
@@ -125,27 +204,41 @@ class _EnterPinPageState extends State<EnterPinPage> {
         headers: {'Content-Type': 'application/json'},
       );
 
+      debugPrint(
+          'OTP Verification Response: ${response.statusCode} - ${response.body}');
+
       if (response.statusCode == 200) {
-        final isValid = jsonDecode(response.body) as bool;
+        final responseData = jsonDecode(response.body);
+        final isValid = responseData['isValid'] ?? false;
+
         if (isValid) {
           await _completeBooking();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Invalid OTP. Please try again.")),
+            const SnackBar(content: Text("Invalid OTP. Please try again.")),
           );
         }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("OTP verification failed: ${response.body}")),
+        );
       }
     } catch (e) {
+      debugPrint('OTP Verification Error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Verification failed: ${e.toString()}")),
       );
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
   Future<void> _completeBooking() async {
     try {
+      debugPrint('Starting booking process...');
+
       final bookingData = {
         'eventId': widget.event['id'],
         'userEmail': widget.userEmail,
@@ -156,32 +249,69 @@ class _EnterPinPageState extends State<EnterPinPage> {
         'bookingTime': DateTime.now().toIso8601String(),
       };
 
+      debugPrint('Booking data: $bookingData');
+
+      // For testing purposes, you can bypass the API call with this:
+      final bookingId = "BK-${DateTime.now().millisecondsSinceEpoch}";
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PaymentResultPopup(
+            eventName: widget.event['name'],
+            eventDate: widget.event['date'] ?? 'Date not specified',
+            eventLocation: widget.event['location'] ?? 'Venue not specified',
+            userName: widget.userName,
+            userContact: widget.userPhone,
+            bookingId: bookingId,
+          ),
+        ),
+      );
+
+      /* Uncomment this for actual API call
       final response = await http.post(
         Uri.parse('http://192.168.1.6:8081/api/bookings'),
         body: jsonEncode(bookingData),
         headers: {'Content-Type': 'application/json'},
       );
 
+      debugPrint('Booking response: ${response.statusCode} - ${response.body}');
+
       if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        final bookingId = responseData['bookingId'] ?? 
+            "BK-${DateTime.now().millisecondsSinceEpoch}";
+
+        if (!mounted) return;
+        
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => ETicketPage(
-                // event: widget.event,
-                // userName: widget.userName,
-                // userEmail: widget.userEmail,
-                // seatCount: widget.seatCount,
-                // bookingId: "BK-${DateTime.now().millisecondsSinceEpoch}",
-                ),
+            builder: (_) => PaymentResultPopup(
+              eventName: widget.event['name'],
+              eventDate: widget.event['date'] ?? 'Date not specified',
+              eventLocation: widget.event['location'] ?? 'Venue not specified',
+              userName: widget.userName,
+              userContact: widget.userPhone,
+              bookingId: bookingId,
+            ),
           ),
         );
       } else {
         throw Exception('Booking failed with status ${response.statusCode}');
       }
+      */
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Booking failed: ${e.toString()}")),
-      );
+      debugPrint('Booking Error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Booking failed: ${e.toString()}"),
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
       rethrow;
     }
   }
@@ -190,7 +320,7 @@ class _EnterPinPageState extends State<EnterPinPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Verify OTP"),
+        title: const Text("Verify OTP"),
         centerTitle: true,
       ),
       body: Padding(
@@ -199,14 +329,10 @@ class _EnterPinPageState extends State<EnterPinPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              "Enter the 6-digit code sent to",
-              style: TextStyle(fontSize: 16),
+              "Enter the 6-digit code sent to ${widget.userEmail}",
+              style: const TextStyle(fontSize: 16),
             ),
-            Text(
-              widget.userEmail,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
 
             // OTP Input Fields
             GestureDetector(
@@ -217,7 +343,7 @@ class _EnterPinPageState extends State<EnterPinPage> {
                   return Container(
                     width: 45,
                     height: 45,
-                    margin: EdgeInsets.symmetric(horizontal: 5),
+                    margin: const EdgeInsets.symmetric(horizontal: 5),
                     decoration: BoxDecoration(
                       border: Border.all(
                         color: index == currentOtpIndex
@@ -230,7 +356,7 @@ class _EnterPinPageState extends State<EnterPinPage> {
                     child: Center(
                       child: Text(
                         otp[index].isNotEmpty ? '●' : '',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 24,
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
@@ -241,38 +367,26 @@ class _EnterPinPageState extends State<EnterPinPage> {
                 }),
               ),
             ),
-            SizedBox(height: 20),
-
-            // Debug OTP (for development only)
-            if (_debugOtp != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 20),
-                child: Text(
-                  'DEV OTP: $_debugOtp',
-                  style: TextStyle(color: Colors.red, fontSize: 16),
-                ),
-              ),
-
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             ElevatedButton(
               onPressed: _isLoading ? null : _verifyOtp,
               style: ElevatedButton.styleFrom(
-                minimumSize: Size(double.infinity, 50),
+                minimumSize: const Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
               child: _isLoading
-                  ? CircularProgressIndicator(color: Colors.white)
-                  : Text(
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Text(
                       "VERIFY & CONTINUE",
                       style: TextStyle(fontSize: 16),
                     ),
             ),
-            SizedBox(height: 15),
+            const SizedBox(height: 15),
             TextButton(
               onPressed: _isLoading ? null : _generateOtp,
-              child: Text(
+              child: const Text(
                 "Resend OTP",
                 style: TextStyle(fontSize: 16),
               ),
