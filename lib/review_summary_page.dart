@@ -90,7 +90,8 @@ class _ReviewSummaryPageState extends State<ReviewSummaryPage> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        widget.event['title'] ?? 'Event',
+                                        widget.event['title'] ??
+                                            'Startup Funding Workshop - Karachi',
                                         style: const TextStyle(
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold),

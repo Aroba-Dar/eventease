@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:event_ease/favourite_page.dart';
 import 'package:event_ease/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -502,8 +503,39 @@ class _HomePageState extends State<HomePage> {
                 icon: Icon(Icons.favorite), label: 'Favorites'),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           ],
-          onTap: (index) {
-            if (index == 3) {
+          onTap: (index) async {
+            if (index == 0) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const HomePage()),
+              );
+            } else if (index == 1) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const PopularEventsPage()),
+              );
+            } else if (index == 2) {
+              final prefs = await SharedPreferences.getInstance();
+              final isGuest = prefs.getBool('isGuest') ?? true;
+
+              if (!isGuest) {
+                final userId = prefs.getInt('userId') ??
+                    0; // Ensure this matches your expected type
+                print("Saved userId from prefs: $userId");
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => FavouritesPage(userId: userId),
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text('Please login to view favorites')),
+                );
+              }
+            } else if (index == 3) {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const ProfilePage()),

@@ -62,8 +62,7 @@ class _PaymentSelectionPageState extends State<PaymentSelectionPage> {
                   const SizedBox(height: 10),
                   _buildPaymentOption(2, "JazzCash", Icons.money),
                   const SizedBox(height: 10),
-                  _buildPaymentOption(
-                      3, "Credit Card (Stripe)", Icons.credit_card),
+                  _buildPaymentOption(3, "Credit Card", Icons.credit_card),
                   const SizedBox(height: 20),
                   if (_selectedPaymentMethod == 3)
                     Padding(

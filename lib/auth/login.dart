@@ -74,6 +74,13 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
         final data = jsonDecode(response.body);
 
         final prefs = await SharedPreferences.getInstance();
+        // ✅ Safely parse and store user_id
+        if (data.containsKey('user_id')) {
+          await prefs.setInt('userId', data['user_id']);
+          print("Saved user_id to prefs: ${data['user_id']}");
+        } else {
+          print("⚠️ 'user_id' not found in response");
+        }
         await prefs.setBool('isGuest', false);
         await prefs.setBool('isLoggedIn', true);
         await prefs.setString(
@@ -85,6 +92,7 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
         await prefs.setString('gender', data['gender'] ?? 'Male');
         await prefs.setString('country', data['country'] ?? '');
         await prefs.setString('dateOfBirth', data['dateOfBirth'] ?? '');
+        // await prefs.setInt('userId', data['user_id']);
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
