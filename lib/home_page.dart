@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:event_ease/event_detail_page.dart';
 import 'package:event_ease/favourite_page.dart';
 import 'package:event_ease/profile_page.dart';
 import 'package:flutter/material.dart';
@@ -291,72 +292,95 @@ class _HomePageState extends State<HomePage> {
                           itemCount: featuredEvents.length,
                           itemBuilder: (context, index) {
                             final event = featuredEvents[index];
-                            return Container(
-                              width: 260,
-                              margin: const EdgeInsets.only(right: 12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: const [
-                                  BoxShadow(
-                                      color: Colors.black12, blurRadius: 5)
-                                ],
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: const BorderRadius.vertical(
-                                        top: Radius.circular(12)),
-                                    child: Image.network(
-                                      event.imageUrl,
-                                      height: 140,
-                                      width: double.infinity,
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) =>
-                                              Container(
-                                                  height: 140,
-                                                  color: Colors.grey.shade300,
-                                                  child: const Icon(
-                                                      Icons.broken_image,
-                                                      color: Colors.grey)),
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => EventDetailsPage(
+                                      event: {
+                                        'id': event.id,
+                                        'name': event.title,
+                                        'category': event.category,
+                                        'date': event.dateTime.split('.')[0],
+                                        'time': event.dateTime.split('.')[1],
+                                        'location': event.location,
+                                        'imageUrl': event.imageUrl,
+                                        // 'description': event.description,
+                                        'organizerName': event.organizer,
+                                        'organizerImage': event.organizerImage,
+                                      },
                                     ),
                                   ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(event.title,
-                                            style: const TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.bold)),
-                                        const SizedBox(height: 4),
-                                        Text(event.dateTime,
-                                            style: const TextStyle(
-                                                fontSize: 12,
-                                                color: Color.fromARGB(
-                                                    255, 156, 39, 176))),
-                                        const SizedBox(height: 4),
-                                        Row(
-                                          children: [
-                                            const Icon(Icons.location_on,
-                                                size: 14,
-                                                color: Color.fromARGB(
-                                                    255, 156, 39, 176)),
-                                            const SizedBox(width: 4),
-                                            Text(event.location,
-                                                style: const TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.grey)),
-                                          ],
+                                );
+                              },
+                              child: Container(
+                                width: 260,
+                                margin: const EdgeInsets.only(right: 12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                        color: Colors.black12, blurRadius: 5)
+                                  ],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: const BorderRadius.vertical(
+                                          top: Radius.circular(12)),
+                                      child: Image.network(
+                                        event.imageUrl,
+                                        height: 140,
+                                        width: double.infinity,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                Container(
+                                          height: 140,
+                                          color: Colors.grey.shade300,
+                                          child: const Icon(Icons.broken_image,
+                                              color: Colors.grey),
                                         ),
-                                      ],
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(event.title,
+                                              style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold)),
+                                          const SizedBox(height: 4),
+                                          Text(event.dateTime,
+                                              style: const TextStyle(
+                                                  fontSize: 12,
+                                                  color: Color.fromARGB(
+                                                      255, 156, 39, 176))),
+                                          const SizedBox(height: 4),
+                                          Row(
+                                            children: [
+                                              const Icon(Icons.location_on,
+                                                  size: 14,
+                                                  color: Color.fromARGB(
+                                                      255, 156, 39, 176)),
+                                              const SizedBox(width: 4),
+                                              Text(event.location,
+                                                  style: const TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors.grey)),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             );
                           },
@@ -431,56 +455,80 @@ class _HomePageState extends State<HomePage> {
                       itemCount: eventsToDisplay.length,
                       itemBuilder: (context, index) {
                         final event = eventsToDisplay[index];
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            boxShadow: const [
-                              BoxShadow(color: Colors.black12, blurRadius: 3)
-                            ],
-                          ),
-                          child: ListTile(
-                            leading: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.network(
-                                event.imageUrl,
-                                width: 60,
-                                height: 60,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    Container(
-                                        width: 60,
-                                        height: 60,
-                                        color: Colors.grey.shade300,
-                                        child: const Icon(Icons.broken_image,
-                                            color: Colors.grey)),
-                              ),
-                            ),
-                            title: Text(event.title,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold)),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(event.dateTime,
-                                    style: const TextStyle(
-                                        color:
-                                            Color.fromARGB(255, 156, 39, 176))),
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.location_on,
-                                        size: 14,
-                                        color:
-                                            Color.fromARGB(255, 156, 39, 176)),
-                                    const SizedBox(width: 4),
-                                    Text(event.location,
-                                        style: const TextStyle(
-                                            color: Colors.grey)),
-                                  ],
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => EventDetailsPage(
+                                  event: {
+                                    'id': event.id,
+                                    'name': event.title,
+                                    'category': event.category,
+                                    'date': event.dateTime.split('.')[0],
+                                    'time': event.dateTime.split('.')[1],
+                                    'location': event.location,
+                                    'imageUrl': event.imageUrl,
+                                    // 'description': event.description,
+                                    'organizerName': event.organizer,
+                                    'organizerImage': event.organizerImage,
+                                  },
                                 ),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: const [
+                                BoxShadow(color: Colors.black12, blurRadius: 3)
                               ],
+                            ),
+                            child: ListTile(
+                              leading: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(
+                                  event.imageUrl,
+                                  width: 60,
+                                  height: 60,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Container(
+                                    width: 60,
+                                    height: 60,
+                                    color: Colors.grey.shade300,
+                                    child: const Icon(Icons.broken_image,
+                                        color: Colors.grey),
+                                  ),
+                                ),
+                              ),
+                              title: Text(event.title,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold)),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(event.dateTime,
+                                      style: const TextStyle(
+                                          color: Color.fromARGB(
+                                              255, 156, 39, 176))),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.location_on,
+                                          size: 14,
+                                          color: Color.fromARGB(
+                                              255, 156, 39, 176)),
+                                      const SizedBox(width: 4),
+                                      Text(event.location,
+                                          style: const TextStyle(
+                                              color: Colors.grey)),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         );

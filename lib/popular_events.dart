@@ -112,9 +112,7 @@ class EventCard extends StatelessWidget {
                 'time': event['dateTime']?.split('.')[1] ?? '',
                 'location': event['location'] ?? '',
                 'imageUrl': event['imageUrl'] ?? '',
-                'description':
-                    'Kickstart your entrepreneurial journey at the Startup Funding Workshop in Karachi! Learn how to secure funding, build a strong pitch, and connect with investors. Perfect for early-stage founders and anyone passionate about startups. Grow your idea into the next big success!',
-
+                'description': event['description'] ?? '',
                 'organizerName':
                     event['organizer'] ?? '', // Corrected to use organizer
                 'organizerImage': event['organizerImage'] ??

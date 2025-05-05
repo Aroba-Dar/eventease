@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:add_2_calendar/add_2_calendar.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:event_ease/book_event_form_page.dart';
 import 'package:event_ease/seat_count_page.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -168,21 +171,49 @@ class _EventDetailsPageState extends State<EventDetailsPage>
   Future<void> _toggleFavorite() async {
     final prefs = await SharedPreferences.getInstance();
     final userEmail = prefs.getString('email');
-    final favoriteKey = 'favorites_$userEmail';
-    List<String> favorites = prefs.getStringList(favoriteKey) ?? [];
+    final userId = prefs.getInt('userId');
+    final eventId = widget.event['id'];
 
-    final eventId = widget.event['id'].toString();
-    if (favorites.contains(eventId)) {
-      favorites.remove(eventId);
-    } else {
-      favorites.add(eventId);
+    if (userEmail == null || userId == null || eventId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('User ID, email or Event ID missing.')),
+      );
+      return;
     }
 
-    await prefs.setStringList(favoriteKey, favorites);
-    if (mounted) {
-      setState(() {
-        _isFavFuture = _isFavorite();
-      });
+    final String url = 'http://192.168.1.6:8081/favorites/toggle';
+
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'userId': userId,
+          'eventId': eventId,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final message = response.body;
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(message)));
+
+        // After toggling the favorite, update the UI
+        setState(() {
+          _isFavFuture =
+              Future.value(message == 'Favorite added.' ? true : false);
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Failed to toggle favorite: ${response.body}')),
+        );
+      }
+    } catch (e) {
+      print('Error updating favorite: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error updating favorite.')),
+      );
     }
   }
 
@@ -352,8 +383,15 @@ class _EventDetailsPageState extends State<EventDetailsPage>
                   future: _isFavFuture,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const CircularProgressIndicator();
+                      return const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      );
+                    } else if (snapshot.hasError) {
+                      return Icon(Icons.error, color: Colors.grey);
                     }
+
                     final isFavorite = snapshot.data ?? false;
                     return GestureDetector(
                       onTap: _toggleFavorite,
