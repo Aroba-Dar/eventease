@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:location/location.dart' as location;
+import 'package:intl/intl.dart';
 
 class EventDetailsPage extends StatefulWidget {
   final Map<String, dynamic> event;
@@ -155,17 +156,79 @@ class _EventDetailsPageState extends State<EventDetailsPage>
     }
   }
 
-  void _addToCalendar() {
+  Future<void> _addToCalendar() async {
+    // Request calendar permission
+    final status = await Permission.calendar.request();
+    if (!status.isGranted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Calendar permission not granted")),
+      );
+      return;
+    }
+
     final event = widget.event;
+    final title = event['name'] ?? 'Event';
+    final description = event['description'] ?? '';
+    final location = event['location'] ?? '';
+    final rawDate = event['date'] ?? '';
+    final rawTime = event['time'] ?? '';
+
+    DateTime? startDate;
+    try {
+      print('Raw date: $rawDate');
+      print('Raw time: $rawTime');
+
+      // Example: "Sun, Aug 9"
+      final currentYear = DateTime.now().year;
+      final parsedDate = DateFormat('EEE, MMM d').parse(rawDate);
+      final fullDate = DateTime(currentYear, parsedDate.month, parsedDate.day);
+
+// Handle time parsing
+      final timeRange = rawTime.split('-').first.trim(); // e.g. "11:00"
+      final parsedTime =
+          DateFormat('hh:mm').parse(timeRange); // handles 12-hour format
+
+      startDate = DateTime(
+        fullDate.year,
+        fullDate.month,
+        fullDate.day,
+        parsedTime.hour,
+        parsedTime.minute,
+      );
+    } catch (e) {
+      print("Parsing error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Invalid date or time format")),
+      );
+      return;
+    }
+
     final calendarEvent = Event(
-      title: event['name'] ?? 'Event',
-      description: event['description'] ?? '',
-      location: event['location'] ?? '',
-      startDate: DateTime.parse('${event['date']} ${event['time']}'),
-      endDate: DateTime.parse('${event['date']} ${event['time']}')
-          .add(const Duration(hours: 2)),
+      title: title,
+      description: description,
+      location: location,
+      startDate: startDate,
+      endDate: startDate.add(const Duration(hours: 2)),
+      iosParams: const IOSParams(
+        reminder: Duration(minutes: 30),
+        url: 'https://example.com',
+      ),
+      androidParams: const AndroidParams(
+        emailInvites: [],
+      ),
     );
-    Add2Calendar.addEvent2Cal(calendarEvent);
+
+    try {
+      await Add2Calendar.addEvent2Cal(calendarEvent);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Event added to calendar")),
+      );
+    } catch (e) {
+      print("Calendar error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to add event to calendar")),
+      );
+    }
   }
 
   Future<void> _toggleFavorite() async {
