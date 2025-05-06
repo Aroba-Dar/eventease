@@ -1,6 +1,7 @@
+import 'package:event_ease/admin/form.dart';
 import 'package:flutter/material.dart';
-import 'auth/login.dart'; // Your new login/register page
-import 'home_page.dart'; // Your existing home page
+// import 'auth/login.dart'; // Your new login/register page
+// import 'home_page.dart'; // Your existing home page
 import 'package:flutter_stripe/flutter_stripe.dart';
 
 void main() {
@@ -21,11 +22,12 @@ class EventEaseApp extends StatelessWidget {
         primaryColor: const Color(0xFF6D62F4),
         fontFamily: 'Arial',
       ),
-      initialRoute: '/login',
-      routes: {
-        '/login': (context) => const LoginRegisterPage(),
-        '/home': (context) => const HomePage(),
-      },
+      // initialRoute: '/login',
+      // routes: {
+      //   '/login': (context) => const LoginRegisterPage(),
+      //   '/home': (context) => const HomePage(),
+      // },
+      home: OrganizerEventForm(), // Set the initial page to login/register
     );
   }
 }
