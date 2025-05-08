@@ -12,6 +12,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:location/location.dart' as location;
 import 'package:intl/intl.dart';
 
+// Main Event Details Page
 class EventDetailsPage extends StatefulWidget {
   final Map<String, dynamic> event;
 
@@ -23,32 +24,35 @@ class EventDetailsPage extends StatefulWidget {
 
 class _EventDetailsPageState extends State<EventDetailsPage>
     with WidgetsBindingObserver {
-  late Future<bool> _isFavFuture;
-  location.LocationData? _currentLocation;
+  late Future<bool> _isFavFuture; // Future to check if the event is a favorite
+  location.LocationData? _currentLocation; // Stores the user's current location
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _isFavFuture = _isFavorite();
-    _getCurrentLocation();
+    WidgetsBinding.instance.addObserver(this); // Observe app lifecycle changes
+    _isFavFuture = _isFavorite(); // Initialize favorite status
+    _getCurrentLocation(); // Fetch user's current location
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this); // Remove observer on dispose
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Refresh location when the app resumes
     if (state == AppLifecycleState.resumed) {
       _getCurrentLocation();
     }
   }
 
+  // Fetch user's current location
   Future<void> _getCurrentLocation() async {
     try {
+      // Request location permission
       final permission = await Permission.locationWhenInUse.request();
       if (!permission.isGranted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -60,6 +64,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
       location.Location locationService = location.Location();
       bool serviceEnabled = await locationService.serviceEnabled();
       if (!serviceEnabled) {
+        // Request to enable location service
         serviceEnabled = await locationService.requestService();
         if (!serviceEnabled) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -69,6 +74,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
         }
       }
 
+      // Get the current location
       final locationData = await locationService.getLocation();
       if (mounted) {
         setState(() {
@@ -80,6 +86,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
     }
   }
 
+  // Launch Google Maps with directions to the event location
   void _launchMaps(String destination) async {
     final destinationEncoded = Uri.encodeComponent(destination);
     final origin = _currentLocation != null
@@ -103,11 +110,13 @@ class _EventDetailsPageState extends State<EventDetailsPage>
     }
   }
 
+  // Handle event booking logic
   Future<void> _handleBooking() async {
     final prefs = await SharedPreferences.getInstance();
     final isGuest = prefs.getBool('isGuest') ?? true;
 
     if (isGuest) {
+      // Navigate to booking form for guest users
       final formSuccess = await Navigator.push<bool>(
         context,
         MaterialPageRoute(
@@ -124,6 +133,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
           return;
         }
 
+        // Navigate to seat booking page
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -135,6 +145,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
         );
       }
     } else {
+      // Directly navigate to seat booking page for logged-in users
       final eventId = widget.event['id'];
 
       if (eventId == null || eventId is! int) {
@@ -156,6 +167,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
     }
   }
 
+  // Add event to the user's calendar
   Future<void> _addToCalendar() async {
     // Request calendar permission
     final status = await Permission.calendar.request();
@@ -175,18 +187,13 @@ class _EventDetailsPageState extends State<EventDetailsPage>
 
     DateTime? startDate;
     try {
-      print('Raw date: $rawDate');
-      print('Raw time: $rawTime');
-
-      // Example: "Sun, Aug 9"
+      // Parse date and time
       final currentYear = DateTime.now().year;
       final parsedDate = DateFormat('EEE, MMM d').parse(rawDate);
       final fullDate = DateTime(currentYear, parsedDate.month, parsedDate.day);
 
-// Handle time parsing
-      final timeRange = rawTime.split('-').first.trim(); // e.g. "11:00"
-      final parsedTime =
-          DateFormat('hh:mm').parse(timeRange); // handles 12-hour format
+      final timeRange = rawTime.split('-').first.trim();
+      final parsedTime = DateFormat('hh:mm').parse(timeRange);
 
       startDate = DateTime(
         fullDate.year,
@@ -203,6 +210,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
       return;
     }
 
+    // Create calendar event
     final calendarEvent = Event(
       title: title,
       description: description,
@@ -231,6 +239,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
     }
   }
 
+  // Toggle favorite status of the event
   Future<void> _toggleFavorite() async {
     final prefs = await SharedPreferences.getInstance();
     final userEmail = prefs.getString('email');
@@ -261,7 +270,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(message)));
 
-        // After toggling the favorite, update the UI
+        // Update favorite status in the UI
         setState(() {
           _isFavFuture =
               Future.value(message == 'Favorite added.' ? true : false);
@@ -280,6 +289,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
     }
   }
 
+  // Check if the event is marked as a favorite
   Future<bool> _isFavorite() async {
     final prefs = await SharedPreferences.getInstance();
     final userEmail = prefs.getString('email');
@@ -288,6 +298,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
     return favorites.contains(widget.event['id'].toString());
   }
 
+  // Build image widget for event images
   Widget _buildImage(dynamic imageUrl) {
     if (imageUrl != null && imageUrl.isNotEmpty) {
       return Image.network(
@@ -333,10 +344,12 @@ class _EventDetailsPageState extends State<EventDetailsPage>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Event title
                   Text(event['name'] ?? '',
                       style: const TextStyle(
                           fontSize: 24, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
+                  // Event category chip
                   Chip(
                     label: Text(event['category'] ?? ''),
                     side: BorderSide(
@@ -346,6 +359,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
                     ),
                   ),
                   const SizedBox(height: 16),
+                  // Event date and time
                   Row(
                     children: [
                       const Icon(Icons.calendar_today,
@@ -370,6 +384,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
                     ],
                   ),
                   const SizedBox(height: 16),
+                  // Event location
                   Row(
                     children: [
                       const Icon(Icons.location_on, color: Colors.red),
@@ -384,6 +399,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
                     ],
                   ),
                   const Divider(height: 32),
+                  // Organizer details
                   ListTile(
                     leading: CircleAvatar(
                       backgroundImage: event['organizerImage'] != null &&
@@ -399,12 +415,14 @@ class _EventDetailsPageState extends State<EventDetailsPage>
                     subtitle: const Text("Organizer"),
                   ),
                   const Divider(),
+                  // About the event
                   const Text("About Event",
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   Text(event['description'] ?? 'No description available.'),
                   const SizedBox(height: 16),
+                  // Event gallery
                   const Text("Gallery (Pre-Event)",
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -437,6 +455,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
               ),
             ),
           ),
+          // Favorite button
           Positioned(
             top: 40,
             right: 16,
@@ -470,6 +489,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
           ),
         ],
       ),
+      // Bottom navigation bar for booking
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16),
         color: Colors.white,

@@ -1,5 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:pdf/widgets.dart' as pw;
+// import 'package:printing/printing.dart';
+// import 'package:path_provider/path_provider.dart';
+// import 'package:flutter/services.dart';
 
 class ETicketPage extends StatelessWidget {
   final String eventName;
@@ -109,9 +115,75 @@ class ETicketPage extends StatelessWidget {
     );
   }
 
-  void _downloadTicket(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Ticket downloaded successfully")),
-    );
+  void _downloadTicket(BuildContext context) async {
+    final status = await Permission.storage.request();
+
+    if (!status.isGranted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Storage permission denied')),
+      );
+      return;
+    }
+
+    final pdf = pw.Document();
+
+    try {
+      // Generate QR code image
+      final qrValidationResult = QrValidator.validate(
+        data: bookingId,
+        version: QrVersions.auto,
+        errorCorrectionLevel: QrErrorCorrectLevel.Q,
+      );
+
+      if (qrValidationResult.status != QrValidationStatus.valid) {
+        throw Exception('Invalid QR Code data');
+      }
+
+      final qrCode = qrValidationResult.qrCode;
+      final painter = QrPainter.withQr(
+        qr: qrCode!,
+        color: const Color(0xFF000000),
+        emptyColor: const Color(0xFFFFFFFF),
+        gapless: true,
+      );
+
+      final imageData = await painter.toImageData(200);
+      final qrImage = pw.MemoryImage(imageData!.buffer.asUint8List());
+
+      // Add content to PDF
+      pdf.addPage(
+        pw.Page(
+          build: (pw.Context context) => pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.center,
+            children: [
+              pw.Text('E-Ticket', style: pw.TextStyle(fontSize: 24)),
+              pw.SizedBox(height: 16),
+              pw.Image(qrImage, width: 150, height: 150),
+              pw.SizedBox(height: 16),
+              pw.Text('Event: $eventName'),
+              pw.Text('Date: $eventDate'),
+              pw.Text('Location: $eventLocation'),
+              pw.SizedBox(height: 12),
+              pw.Text('Name: $userName'),
+              pw.Text('Contact: $userContact'),
+              // pw.Text('Booking ID: $bookingId'),
+            ],
+          ),
+        ),
+      );
+
+      // Save to Downloads
+      final downloadDir = Directory('/storage/emulated/0/Download');
+      final file = File('${downloadDir.path}/ticket_$bookingId.pdf');
+      await file.writeAsBytes(await pdf.save());
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ticket downloaded to Downloads folder.')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to download ticket: $e')),
+      );
+    }
   }
 }

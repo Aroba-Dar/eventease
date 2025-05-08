@@ -26,45 +26,53 @@ class EnterPinPage extends StatefulWidget {
 }
 
 class _EnterPinPageState extends State<EnterPinPage> {
-  List<String> otp = ['', '', '', '', '', ''];
-  int currentOtpIndex = 0;
-  bool _isLoading = false;
-  final TextEditingController _controller = TextEditingController();
-  final FocusNode _focusNode = FocusNode();
-  OverlayEntry? _notificationEntry;
-  String? _lastGeneratedOtp;
+  List<String> otp = ['', '', '', '', '', '']; // Stores the entered OTP digits
+  int currentOtpIndex = 0; // Tracks the current OTP input index
+  bool _isLoading = false; // Indicates if a process is loading
+  final TextEditingController _controller =
+      TextEditingController(); // Controller for hidden text field
+  final FocusNode _focusNode =
+      FocusNode(); // Focus node for the hidden text field
+  OverlayEntry? _notificationEntry; // Overlay entry for OTP notification
+  String?
+      _lastGeneratedOtp; // Stores the last generated OTP for local verification
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      FocusScope.of(context).requestFocus(_focusNode);
-      _generateOtp();
+      FocusScope.of(context).requestFocus(
+          _focusNode); // Automatically focus on the hidden text field
+      _generateOtp(); // Generate OTP on page load
     });
-    _controller.addListener(_updateOtp);
+    _controller.addListener(_updateOtp); // Listen for changes in the text field
   }
 
   @override
   void dispose() {
-    _controller.dispose();
-    _focusNode.dispose();
-    _removeNotification();
+    _controller.dispose(); // Dispose the text controller
+    _focusNode.dispose(); // Dispose the focus node
+    _removeNotification(); // Remove any active notification
     super.dispose();
   }
 
+  // Removes the OTP notification overlay
   void _removeNotification() {
     _notificationEntry?.remove();
     _notificationEntry = null;
   }
 
+  // Updates the OTP array based on the text field input
   void _updateOtp() {
     final text = _controller.text;
     if (text.length > 6) {
+      // Limit input to 6 characters
       _controller.text = text.substring(0, 6);
       _controller.selection = TextSelection.fromPosition(
           TextPosition(offset: _controller.text.length));
     }
     setState(() {
+      // Update the OTP array and current index
       for (int i = 0; i < 6; i++) {
         otp[i] = i < text.length ? text[i] : '';
       }
@@ -72,9 +80,10 @@ class _EnterPinPageState extends State<EnterPinPage> {
     });
   }
 
+  // Displays an OTP notification overlay
   void _showOtpNotification(String otpCode) {
-    _removeNotification();
-    _lastGeneratedOtp = otpCode;
+    _removeNotification(); // Remove any existing notification
+    _lastGeneratedOtp = otpCode; // Store the generated OTP
 
     final overlay = Overlay.of(context);
     _notificationEntry = OverlayEntry(
@@ -99,7 +108,8 @@ class _EnterPinPageState extends State<EnterPinPage> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.verified, color: Colors.green),
+                const Icon(Icons.verified,
+                    color: Colors.green), // Verified icon
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -114,7 +124,7 @@ class _EnterPinPageState extends State<EnterPinPage> {
                         ),
                       ),
                       Text(
-                        otpCode,
+                        otpCode, // Display the OTP code
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -125,7 +135,7 @@ class _EnterPinPageState extends State<EnterPinPage> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(Icons.close), // Close button
                   onPressed: _removeNotification,
                 ),
               ],
@@ -135,14 +145,16 @@ class _EnterPinPageState extends State<EnterPinPage> {
       ),
     );
 
-    overlay.insert(_notificationEntry!);
-    Future.delayed(const Duration(seconds: 10), _removeNotification);
+    overlay.insert(_notificationEntry!); // Insert the overlay
+    Future.delayed(const Duration(seconds: 10),
+        _removeNotification); // Auto-remove after 10 seconds
   }
 
+  // Generates a new OTP and sends it to the user's email
   Future<void> _generateOtp() async {
     setState(() {
-      _isLoading = true;
-      _controller.clear();
+      _isLoading = true; // Show loading indicator
+      _controller.clear(); // Clear the text field
       _updateOtp(); // Clear the OTP fields
     });
 
@@ -158,8 +170,9 @@ class _EnterPinPageState extends State<EnterPinPage> {
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        final otpCode = responseData['debugOtp'] ?? '123456';
-        _showOtpNotification(otpCode);
+        final otpCode =
+            responseData['debugOtp'] ?? '123456'; // Use debug OTP for testing
+        _showOtpNotification(otpCode); // Show the OTP notification
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to generate OTP: ${response.body}')),
@@ -171,12 +184,13 @@ class _EnterPinPageState extends State<EnterPinPage> {
         SnackBar(content: Text('Error: ${e.toString()}')),
       );
     } finally {
-      setState(() => _isLoading = false);
+      setState(() => _isLoading = false); // Hide loading indicator
     }
   }
 
+  // Verifies the entered OTP
   Future<void> _verifyOtp() async {
-    final enteredOtp = otp.join();
+    final enteredOtp = otp.join(); // Combine OTP digits into a single string
     if (enteredOtp.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please enter complete 6-digit OTP")),
@@ -184,14 +198,14 @@ class _EnterPinPageState extends State<EnterPinPage> {
       return;
     }
 
-    setState(() => _isLoading = true);
+    setState(() => _isLoading = true); // Show loading indicator
     try {
       debugPrint('Verifying OTP: $enteredOtp for ${widget.userEmail}');
 
-      // For testing purposes, you can bypass the API call with this:
+      // For testing purposes, bypass the API call with local verification
       if (_lastGeneratedOtp != null && enteredOtp == _lastGeneratedOtp) {
         debugPrint('OTP verification successful (local check)');
-        await _completeBooking();
+        await _completeBooking(); // Proceed to booking
         return;
       }
 
@@ -212,7 +226,7 @@ class _EnterPinPageState extends State<EnterPinPage> {
         final isValid = responseData['isValid'] ?? false;
 
         if (isValid) {
-          await _completeBooking();
+          await _completeBooking(); // Proceed to booking
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Invalid OTP. Please try again.")),
@@ -230,11 +244,12 @@ class _EnterPinPageState extends State<EnterPinPage> {
       );
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() => _isLoading = false); // Hide loading indicator
       }
     }
   }
 
+  // Completes the booking process after successful OTP verification
   Future<void> _completeBooking() async {
     try {
       debugPrint('Starting booking process...');
@@ -251,7 +266,7 @@ class _EnterPinPageState extends State<EnterPinPage> {
 
       debugPrint('Booking data: $bookingData');
 
-      // For testing purposes, you can bypass the API call with this:
+      // For testing purposes, bypass the API call with a mock booking ID
       final bookingId = "BK-${DateTime.now().millisecondsSinceEpoch}";
       if (!mounted) return;
 
@@ -268,40 +283,6 @@ class _EnterPinPageState extends State<EnterPinPage> {
           ),
         ),
       );
-
-      /* Uncomment this for actual API call
-      final response = await http.post(
-        Uri.parse('http://192.168.1.6:8081/api/bookings'),
-        body: jsonEncode(bookingData),
-        headers: {'Content-Type': 'application/json'},
-      );
-
-      debugPrint('Booking response: ${response.statusCode} - ${response.body}');
-
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        final bookingId = responseData['bookingId'] ?? 
-            "BK-${DateTime.now().millisecondsSinceEpoch}";
-
-        if (!mounted) return;
-        
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => PaymentResultPopup(
-              eventName: widget.event['name'],
-              eventDate: widget.event['date'] ?? 'Date not specified',
-              eventLocation: widget.event['location'] ?? 'Venue not specified',
-              userName: widget.userName,
-              userContact: widget.userPhone,
-              bookingId: bookingId,
-            ),
-          ),
-        );
-      } else {
-        throw Exception('Booking failed with status ${response.statusCode}');
-      }
-      */
     } catch (e) {
       debugPrint('Booking Error: $e');
       if (mounted) {
@@ -369,7 +350,7 @@ class _EnterPinPageState extends State<EnterPinPage> {
             ),
             const SizedBox(height: 30),
             ElevatedButton(
-              onPressed: _isLoading ? null : _verifyOtp,
+              onPressed: _isLoading ? null : _verifyOtp, // Verify OTP button
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(
@@ -385,7 +366,7 @@ class _EnterPinPageState extends State<EnterPinPage> {
             ),
             const SizedBox(height: 15),
             TextButton(
-              onPressed: _isLoading ? null : _generateOtp,
+              onPressed: _isLoading ? null : _generateOtp, // Resend OTP button
               child: const Text(
                 "Resend OTP",
                 style: TextStyle(fontSize: 16),

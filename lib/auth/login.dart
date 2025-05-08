@@ -50,6 +50,7 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
         const SnackBar(
             content: Text("Please fill in all fields and accept terms")),
       );
+
       return;
     }
 
@@ -97,6 +98,12 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
         await prefs.setString(
             'userName', '${data['firstName']} ${data['lastName']}');
         await prefs.setString('userEmail', data['email'] ?? '');
+        await prefs.setInt('userId', data['user_id']);
+        await prefs.setString('userPhone', data['phone'] ?? '');
+        await prefs.setString('userCountry', data['country'] ?? '');
+        await prefs.setString('firstName', data['firstName'] ?? '');
+        await prefs.setString('lastName', data['lastName'] ?? '');
+        await prefs.setString('gender', data['gender'] ?? 'male');
 
         // Navigation to Home Page
         ScaffoldMessenger.of(context).showSnackBar(

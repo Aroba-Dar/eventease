@@ -1,9 +1,10 @@
 import 'package:event_ease/payment_selection_page.dart';
 import 'package:flutter/material.dart';
 
+// Page for booking event seats
 class BookEventSeatPage extends StatefulWidget {
-  final Map<String, dynamic> event;
-  final int eventId;
+  final Map<String, dynamic> event; // Event details
+  final int eventId; // Event ID
 
   const BookEventSeatPage(
       {super.key, required this.event, required this.eventId});
@@ -13,48 +14,53 @@ class BookEventSeatPage extends StatefulWidget {
 }
 
 class _BookEventSeatPageState extends State<BookEventSeatPage> {
-  int seatCount = 1;
-  double ticketPrice = 0.0; // Changed to double
-  double vipPrice = 0.0; // Added
-  bool isEconomy = true;
+  int seatCount = 1; // Number of seats selected
+  double ticketPrice = 0.0; // Economy ticket price
+  double vipPrice = 0.0; // VIP ticket price
+  bool isEconomy = true; // Indicates if the economy tab is selected
 
   @override
   void initState() {
     super.initState();
+    // Initialize ticket prices from event details
     ticketPrice = (widget.event['economyPrice'] ?? 500.0).toDouble();
     vipPrice = (widget.event['vipPrice'] ?? 1000.0).toDouble();
   }
 
   @override
   Widget build(BuildContext context) {
-    final eventName = widget.event['name'] ?? "Event Seat Booking";
-    final vipPrice = widget.event['vipPrice'] ?? 1000;
+    final eventName =
+        widget.event['name'] ?? "Event Seat Booking"; // Event name
+    final vipPrice = widget.event['vipPrice'] ?? 1000; // Default VIP price
 
     return Scaffold(
       appBar: AppBar(
         title: Text("Book Seat - $eventName",
-            style: const TextStyle(color: Colors.black)),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
+            style: const TextStyle(color: Colors.black)), // AppBar title
+        backgroundColor: Colors.white, // AppBar background color
+        elevation: 0, // Remove AppBar shadow
+        centerTitle: true, // Center the title
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+          icon:
+              const Icon(Icons.arrow_back, color: Colors.black), // Back button
+          onPressed: () => Navigator.pop(context), // Navigate back
         ),
       ),
       body: Column(
         children: [
           const SizedBox(height: 16),
+          // Tabs for selecting ticket type (Economy or VIP)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
-                _buildTab("Economy", isEconomy),
-                _buildTab("VIP", !isEconomy),
+                _buildTab("Economy", isEconomy), // Economy tab
+                _buildTab("VIP", !isEconomy), // VIP tab
               ],
             ),
           ),
           const SizedBox(height: 16),
+          // Seat selection section
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
@@ -67,47 +73,54 @@ class _BookEventSeatPageState extends State<BookEventSeatPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildCounterButton(Icons.remove, false),
+                    _buildCounterButton(
+                        Icons.remove, false), // Decrease seat count
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Text("$seatCount",
                           style: const TextStyle(
                               fontSize: 22, fontWeight: FontWeight.bold)),
                     ),
-                    _buildCounterButton(Icons.add, true),
+                    _buildCounterButton(Icons.add, true), // Increase seat count
                   ],
                 ),
               ],
             ),
           ),
           const Spacer(),
+          // Continue button to proceed to payment selection
           Container(
             padding: const EdgeInsets.all(16),
             child: ElevatedButton(
               onPressed: () {
+                // Calculate total price based on ticket type and seat count
                 final totalPrice =
                     (isEconomy ? seatCount * ticketPrice : seatCount * vipPrice)
-                        .toDouble(); // <-- Force double
+                        .toDouble();
 
+                // Navigate to the payment selection page
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => PaymentSelectionPage(
                       eventId: widget.eventId,
                       seatCount: seatCount,
-                      totalPrice: totalPrice, // Now definitely double
+                      totalPrice: totalPrice,
                       event: widget.event,
                     ),
                   ),
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color.fromARGB(255, 156, 39, 176),
-                minimumSize: const Size(double.infinity, 50),
+                backgroundColor:
+                    Color.fromARGB(255, 156, 39, 176), // Button color
+                minimumSize:
+                    const Size(double.infinity, 50), // Full-width button
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30)),
+                    borderRadius: BorderRadius.circular(30)), // Rounded corners
               ),
               child: Text(
+                // Display total price on the button
                 "Continue - \$${(isEconomy ? seatCount * ticketPrice : seatCount * vipPrice).toStringAsFixed(2)}",
                 style: const TextStyle(color: Colors.white, fontSize: 18),
               ),
@@ -118,12 +131,13 @@ class _BookEventSeatPageState extends State<BookEventSeatPage> {
     );
   }
 
+  // Builds a tab for selecting ticket type
   Widget _buildTab(String text, bool selected) {
     return Expanded(
       child: GestureDetector(
         onTap: () {
           setState(() {
-            isEconomy = text == "Economy";
+            isEconomy = text == "Economy"; // Update selected tab
           });
         },
         child: Column(
@@ -133,38 +147,40 @@ class _BookEventSeatPageState extends State<BookEventSeatPage> {
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: selected
-                        ? Color.fromARGB(255, 156, 39, 176)
-                        : Colors.grey)),
+                        ? Color.fromARGB(
+                            255, 156, 39, 176) // Selected tab color
+                        : Colors.grey)), // Unselected tab color
             const SizedBox(height: 4),
             if (selected)
               Container(
                   height: 2,
                   width: 60,
-                  color: Color.fromARGB(255, 156, 39, 176)),
+                  color: Color.fromARGB(255, 156, 39, 176)), // Tab indicator
           ],
         ),
       ),
     );
   }
 
+  // Builds a button for increasing or decreasing seat count
   Widget _buildCounterButton(IconData icon, bool isIncrement) {
     return ElevatedButton(
       onPressed: () {
         setState(() {
           if (isIncrement) {
-            seatCount++;
+            seatCount++; // Increment seat count
           } else if (seatCount > 1) {
-            seatCount--;
+            seatCount--; // Decrement seat count (minimum 1)
           }
         });
       },
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white,
-        shape: const CircleBorder(),
-        padding: const EdgeInsets.all(10),
-        side: BorderSide(color: Colors.grey.shade300),
+        backgroundColor: Colors.white, // Button background color
+        shape: const CircleBorder(), // Circular button shape
+        padding: const EdgeInsets.all(10), // Button padding
+        side: BorderSide(color: Colors.grey.shade300), // Button border
       ),
-      child: Icon(icon, color: Colors.black),
+      child: Icon(icon, color: Colors.black), // Button icon
     );
   }
 }

@@ -31,6 +31,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     // Load user session and fetch events when the widget is initialized
+
     loadUserSession();
     fetchEvents();
     _searchController.addListener(_onSearchChanged);

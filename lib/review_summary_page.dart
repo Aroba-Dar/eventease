@@ -2,11 +2,12 @@ import 'package:event_ease/pin_page.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Review Summary Page to display booking details and user information
 class ReviewSummaryPage extends StatefulWidget {
-  final Map<String, dynamic> event;
-  final int seatCount;
-  final double totalPrice;
-  final String paymentMethod;
+  final Map<String, dynamic> event; // Event details
+  final int seatCount; // Number of seats booked
+  final double totalPrice; // Total price of the booking
+  final String paymentMethod; // Selected payment method
 
   const ReviewSummaryPage({
     super.key,
@@ -21,39 +22,42 @@ class ReviewSummaryPage extends StatefulWidget {
 }
 
 class _ReviewSummaryPageState extends State<ReviewSummaryPage> {
-  late String userName = 'Loading...';
-  late String userEmail = 'Loading...';
-  late String userPhone = 'Loading...';
-  bool _isLoading = true;
+  late String userName = 'Loading...'; // User's name
+  late String userEmail = 'Loading...'; // User's email
+  late String userPhone = 'Loading...'; // User's phone number
+  bool _isLoading = true; // Indicates if user data is being loaded
 
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    _loadUserData(); // Load user data when the page initializes
   }
 
+  // Load user data from SharedPreferences
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       userName = prefs.getString('userName') ?? 'Guest User';
       userEmail = prefs.getString('userEmail') ?? 'No email provided';
       userPhone = prefs.getString('userPhone') ?? 'No phone provided';
-      _isLoading = false;
+      _isLoading = false; // Data loading complete
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final taxAmount = widget.totalPrice * 0.1;
-    final grandTotal = widget.totalPrice + taxAmount;
+    final taxAmount = widget.totalPrice * 0.1; // Calculate 10% tax
+    final grandTotal = widget.totalPrice + taxAmount; // Calculate grand total
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Review Summary"),
-        centerTitle: true,
+        title: const Text("Review Summary"), // AppBar title
+        centerTitle: true, // Center the title
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child:
+                  CircularProgressIndicator()) // Show loader while data is loading
           : Column(
               children: [
                 Expanded(
@@ -65,39 +69,47 @@ class _ReviewSummaryPageState extends State<ReviewSummaryPage> {
                         // Event Details Card
                         Card(
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius:
+                                BorderRadius.circular(16), // Rounded corners
                           ),
                           child: Padding(
                             padding: const EdgeInsets.all(16.0),
                             child: Row(
                               children: [
+                                // Event image
                                 Container(
                                   width: 80,
                                   height: 80,
                                   decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
+                                    borderRadius: BorderRadius.circular(
+                                        10), // Rounded corners
                                     image: DecorationImage(
                                       image: NetworkImage(
-                                          widget.event['imageUrl'] ?? ''),
+                                          widget.event['imageUrl'] ??
+                                              ''), // Event image URL
                                       fit: BoxFit.cover,
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 16),
+                                const SizedBox(
+                                    width:
+                                        16), // Space between image and details
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
+                                      // Event name
                                       Text(
-                                        widget.event['title'] ??
-                                            'Startup Funding Workshop - Karachi',
+                                        widget.event['name'] ?? 'Event',
                                         style: const TextStyle(
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold),
                                       ),
                                       const SizedBox(height: 4),
+                                      // Event date and time
                                       Text(widget.event['dateTime'] ?? ''),
+                                      // Event location
                                       Row(
                                         children: [
                                           const Icon(Icons.location_on,
@@ -115,16 +127,18 @@ class _ReviewSummaryPageState extends State<ReviewSummaryPage> {
                         ),
                         const SizedBox(height: 20),
 
-                        // User Details Card (Now Dynamic)
+                        // User Details Card
                         Card(
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius:
+                                BorderRadius.circular(16), // Rounded corners
                           ),
                           child: Padding(
                             padding: const EdgeInsets.all(16.0),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                // Display user details
                                 _buildUserDetailRow("Full Name", userName),
                                 _buildUserDetailRow("Email", userEmail),
                                 _buildUserDetailRow("Phone", userPhone),
@@ -137,18 +151,22 @@ class _ReviewSummaryPageState extends State<ReviewSummaryPage> {
                         // Seat and Payment Summary
                         Card(
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius:
+                                BorderRadius.circular(16), // Rounded corners
                           ),
                           child: Padding(
                             padding: const EdgeInsets.all(16.0),
                             child: Column(
                               children: [
+                                // Seat details and price
                                 _buildSummaryRow(
                                     "${widget.seatCount} Seat${widget.seatCount > 1 ? 's' : ''} (${widget.event['category'] ?? 'General'})",
                                     "\$${widget.totalPrice.toStringAsFixed(2)}"),
+                                // Tax details
                                 _buildSummaryRow("Tax (10%)",
                                     "\$${taxAmount.toStringAsFixed(2)}"),
-                                const Divider(),
+                                const Divider(), // Divider line
+                                // Grand total
                                 _buildSummaryRow("Total",
                                     "\$${grandTotal.toStringAsFixed(2)}",
                                     isTotal: true),
@@ -158,18 +176,20 @@ class _ReviewSummaryPageState extends State<ReviewSummaryPage> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Payment Method
+                        // Payment Method Card
                         Card(
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius:
+                                BorderRadius.circular(16), // Rounded corners
                           ),
                           child: ListTile(
-                            leading:
-                                _getPaymentMethodIcon(widget.paymentMethod),
-                            title: Text(
-                                _formatPaymentMethod(widget.paymentMethod)),
+                            leading: _getPaymentMethodIcon(
+                                widget.paymentMethod), // Payment method icon
+                            title: Text(_formatPaymentMethod(
+                                widget.paymentMethod)), // Payment method name
                             trailing: TextButton(
-                              onPressed: () => Navigator.pop(context),
+                              onPressed: () => Navigator.pop(
+                                  context), // Navigate back to change payment method
                               child: const Text("Change",
                                   style: TextStyle(
                                       color:
@@ -181,10 +201,12 @@ class _ReviewSummaryPageState extends State<ReviewSummaryPage> {
                     ),
                   ),
                 ),
+                // Continue Button
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: ElevatedButton(
                     onPressed: () {
+                      // Navigate to the EnterPinPage
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -200,9 +222,11 @@ class _ReviewSummaryPageState extends State<ReviewSummaryPage> {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 50),
+                      minimumSize:
+                          const Size(double.infinity, 50), // Full-width button
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius:
+                            BorderRadius.circular(10), // Rounded corners
                       ),
                     ),
                     child: const Text("Continue",
@@ -215,31 +239,36 @@ class _ReviewSummaryPageState extends State<ReviewSummaryPage> {
     );
   }
 
+  // Helper method to build user detail row
   Widget _buildUserDetailRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: 4.0), // Space between rows
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: Colors.grey)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(label, style: const TextStyle(color: Colors.grey)), // Label
+          Text(value,
+              style: const TextStyle(fontWeight: FontWeight.bold)), // Value
         ],
       ),
     );
   }
 
+  // Helper method to build summary row
   Widget _buildSummaryRow(String label, String value, {bool isTotal = false}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: 4.0), // Space between rows
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label),
+          Text(label), // Label
           Text(
-            value,
+            value, // Value
             style: TextStyle(
-              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-              color: isTotal ? Colors.green : null,
+              fontWeight: isTotal
+                  ? FontWeight.bold
+                  : FontWeight.normal, // Bold for total
+              color: isTotal ? Colors.green : null, // Green color for total
             ),
           ),
         ],
@@ -247,25 +276,28 @@ class _ReviewSummaryPageState extends State<ReviewSummaryPage> {
     );
   }
 
+  // Helper method to get payment method icon
   Icon _getPaymentMethodIcon(String method) {
     switch (method.toLowerCase()) {
       case 'credit card':
-        return const Icon(Icons.credit_card, size: 40);
+        return const Icon(Icons.credit_card, size: 40); // Credit card icon
       case 'easypaisa':
-        return const Icon(Icons.account_balance_wallet, size: 40);
+        return const Icon(Icons.account_balance_wallet,
+            size: 40); // Easypaisa icon
       case 'jazzcash':
-        return const Icon(Icons.money, size: 40);
+        return const Icon(Icons.money, size: 40); // JazzCash icon
       default:
-        return const Icon(Icons.payment, size: 40);
+        return const Icon(Icons.payment, size: 40); // Default payment icon
     }
   }
 
+  // Helper method to format payment method name
   String _formatPaymentMethod(String method) {
     switch (method.toLowerCase()) {
       case 'credit card':
-        return 'Credit Card •••• 4242';
+        return 'Credit Card •••• 4242'; // Masked credit card number
       default:
-        return method;
+        return method; // Default method name
     }
   }
 }

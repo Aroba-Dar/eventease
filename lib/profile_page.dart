@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Profile Page to display user details
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -9,6 +10,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  // User profile details
   String firstName = '';
   String lastName = '';
   String email = '';
@@ -21,10 +23,9 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    _loadUserProfile();
+    _loadUserProfile(); // Load user profile data on page initialization
   }
 
-  // Method to load user profile data from SharedPreferences
   // Method to load user profile data from SharedPreferences
   _loadUserProfile() async {
     final prefs = await SharedPreferences.getInstance();
@@ -32,6 +33,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (!mounted) return; // Prevent calling setState if widget is disposed
 
     setState(() {
+      // Retrieve user details from SharedPreferences
       firstName = prefs.getString('firstName') ?? '';
       lastName = prefs.getString('lastName') ?? '';
       email = prefs.getString('userEmail') ?? '';
@@ -40,12 +42,13 @@ class _ProfilePageState extends State<ProfilePage> {
       phone = prefs.getString('userPhone') ?? 'Not set';
       dateOfBirth = prefs.getString('dateOfBirth') ?? 'Not set';
 
+      // Set avatar image based on gender
       if (gender.toLowerCase() == 'male') {
         avatarUrl = 'assets/images/male.jpeg';
       } else if (gender.toLowerCase() == 'female') {
         avatarUrl = 'assets/images/female.jpeg';
       } else {
-        avatarUrl = 'assets/images/male.jpeg'; // default fallback
+        avatarUrl = 'assets/images/male.jpeg'; // Default fallback avatar
       }
     });
   }
@@ -54,9 +57,8 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Profile"),
-        backgroundColor:
-            const Color(0xFF9C27B0), // Using the same primary color
+        title: const Text("Profile"), // AppBar title
+        backgroundColor: const Color(0xFF9C27B0), // Primary color
       ),
       body: Padding(
         padding: const EdgeInsets.all(24),
@@ -67,13 +69,13 @@ class _ProfilePageState extends State<ProfilePage> {
             Row(
               children: [
                 CircleAvatar(
-                  radius: 40,
-                  backgroundImage: AssetImage(avatarUrl),
+                  radius: 40, // Avatar size
+                  backgroundImage: AssetImage(avatarUrl), // Avatar image
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 16), // Space between avatar and name
                 Text(
-                  '$firstName $lastName',
-                  style: TextStyle(
+                  '$firstName $lastName', // Display user's full name
+                  style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
@@ -86,15 +88,16 @@ class _ProfilePageState extends State<ProfilePage> {
 
             // Profile Details Card
             Card(
-              elevation: 4,
+              elevation: 4, // Card shadow
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
+                borderRadius: BorderRadius.circular(15), // Rounded corners
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Display user profile information
                     _buildProfileInfo("Email", email),
                     _buildProfileInfo("Phone", phone),
                     _buildProfileInfo("Date of Birth", dateOfBirth),
@@ -104,26 +107,26 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 20), // Space before the button
 
             // Back to Home Button
             Center(
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  // backgroundColor: Color(0xFF9C27B0),
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 14, horizontal: 24), // Button padding
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(10), // Rounded corners
                   ),
                 ),
                 onPressed: () {
+                  // Navigate back to the home page
                   Navigator.pushReplacementNamed(context, '/home');
                 },
                 child: const Text(
-                  'Back to Home',
+                  'Back to Home', // Button text
                   style: TextStyle(
-                      color: Color(0xFF9C27B0),
+                      color: Color(0xFF9C27B0), // Text color
                       fontSize: 18,
                       fontWeight: FontWeight.bold),
                 ),
@@ -138,16 +141,16 @@ class _ProfilePageState extends State<ProfilePage> {
   // Helper method to build profile info row
   Widget _buildProfileInfo(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
+      padding: const EdgeInsets.only(bottom: 12.0), // Space between rows
       child: Row(
         children: [
           Text(
-            '$label: ',
+            '$label: ', // Label for the profile field
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           Expanded(
             child: Text(
-              value,
+              value, // Value of the profile field
               style: const TextStyle(fontSize: 16),
             ),
           ),

@@ -9,11 +9,15 @@
 
 
 
+
+
     <application
         android:label="event_ease"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true">
+        android:requestLegacyExternalStorage="true"
+
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBFFmi-EHBHyBFZNmVHxuCw7ennAtYVjcI" /> <!-- Replace with your actual API key -->
