@@ -27,10 +27,18 @@ class _EventDetailsPageState extends State<EventDetailsPage>
   late Future<bool> _isFavFuture; // Future to check if the event is a favorite
   location.LocationData? _currentLocation; // Stores the user's current location
 
+  String? _aboutDescription;
+
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addObserver(this); // Observe app lifecycle changes
+    fetchEventAbout(widget.event['id']).then((desc) {
+      setState(() {
+        _aboutDescription = desc;
+      });
+    });
     _isFavFuture = _isFavorite(); // Initialize favorite status
     _getCurrentLocation(); // Fetch user's current location
   }
@@ -46,6 +54,16 @@ class _EventDetailsPageState extends State<EventDetailsPage>
     // Refresh location when the app resumes
     if (state == AppLifecycleState.resumed) {
       _getCurrentLocation();
+    }
+  }
+
+  Future<String?> fetchEventAbout(int eventId) async {
+    final response = await http.get(
+        Uri.parse('http://192.168.1.6:8081/api/about-event/events/$eventId'));
+    if (response.statusCode == 200) {
+      return response.body; // plain text, no need for jsonDecode
+    } else {
+      return null;
     }
   }
 
@@ -416,11 +434,16 @@ class _EventDetailsPageState extends State<EventDetailsPage>
                   ),
                   const Divider(),
                   // About the event
-                  const Text("About Event",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  if (_aboutDescription != null) ...[
+                    const SizedBox(height: 20),
+                    const Text("About Event",
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Text(_aboutDescription!),
+                  ],
                   const SizedBox(height: 8),
-                  Text(event['description'] ?? 'No description available.'),
+
                   const SizedBox(height: 16),
                   // Event gallery
                   const Text("Gallery (Pre-Event)",
