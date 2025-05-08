@@ -1,3 +1,4 @@
+// Event model
 class Event {
   final int id;
   final String title;
@@ -8,6 +9,7 @@ class Event {
   final String organizer;
   final String organizerImage;
 
+  // Constructor to initialize all fields
   Event({
     required this.id,
     required this.title,
@@ -19,6 +21,7 @@ class Event {
     required this.organizerImage,
   });
 
+  // Factory constructor to create an Event object from a JSON map
   factory Event.fromJson(Map<String, dynamic> json) {
     return Event(
       id: json['id'],

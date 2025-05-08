@@ -17,6 +17,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  // Variables for user session and UI state
   String greeting = '';
   String displayName = 'Guest';
   String gender = 'male';
@@ -29,6 +30,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    // Load user session and fetch events when the widget is initialized
     loadUserSession();
     fetchEvents();
     _searchController.addListener(_onSearchChanged);
@@ -36,17 +38,20 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    // Clean up the search controller when the widget is disposed
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     super.dispose();
   }
 
+  // Listener for search bar text changes
   void _onSearchChanged() {
     setState(() {
       isSearching = _searchController.text.isNotEmpty;
     });
   }
 
+  // Filter events based on the search query
   List<Event> _filterEvents(String query) {
     return allEvents.where((event) {
       return event.title.toLowerCase().contains(query.toLowerCase()) ||
@@ -55,6 +60,7 @@ class _HomePageState extends State<HomePage> {
     }).toList();
   }
 
+  // Parse custom date format from event data
   DateTime? parseCustomDate(String dateString) {
     try {
       final parts = dateString.split(' . ');
@@ -97,6 +103,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Load user session data from shared preferences
   Future<void> loadUserSession() async {
     final prefs = await SharedPreferences.getInstance();
     final isGuest = prefs.getBool('isGuest') ?? true;
@@ -126,6 +133,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Set default guest user data
   void setGuestUser() {
     setState(() {
       greeting = getGreeting();
@@ -134,6 +142,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // Generate a greeting message based on the time of day
   String getGreeting() {
     final hour = DateTime.now().hour;
     if (hour < 12) return 'Good Morning 👋';
@@ -141,6 +150,7 @@ class _HomePageState extends State<HomePage> {
     return 'Good Evening 👋';
   }
 
+  // Fetch user data from the server
   Future<void> fetchUserData(String email) async {
     final url = Uri.parse('http://192.168.1.6:8081/users/email/$email');
     try {
@@ -166,6 +176,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Fetch events from the server
   Future<void> fetchEvents() async {
     final response =
         await http.get(Uri.parse('http://192.168.1.6:8081/events'));
@@ -177,6 +188,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Get events filtered by the selected category
   List<Event> getFilteredEvents() {
     if (selectedCategory == 'All') return allEvents;
     return allEvents
@@ -185,6 +197,7 @@ class _HomePageState extends State<HomePage> {
         .toList();
   }
 
+  // Get featured events sorted by their proximity to the current date
   List<Event> getFeaturedEvents() {
     final eventsWithDates = allEvents.map((event) {
       final parsedDate = parseCustomDate(event.dateTime);
@@ -208,6 +221,7 @@ class _HomePageState extends State<HomePage> {
     return validEvents.take(4).map((e) => e['event'] as Event).toList();
   }
 
+  // Build the profile avatar widget
   Widget _buildProfileAvatar() {
     String imageAsset = gender.toLowerCase() == 'female'
         ? 'assets/images/female.jpeg'
@@ -220,6 +234,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // Determine which events to display based on search or category
     final eventsToDisplay = isSearching
         ? _filterEvents(_searchController.text)
         : getFilteredEvents();
@@ -568,8 +583,7 @@ class _HomePageState extends State<HomePage> {
               final isGuest = prefs.getBool('isGuest') ?? true;
 
               if (!isGuest) {
-                final userId = prefs.getInt('userId') ??
-                    0; // Ensure this matches your expected type
+                final userId = prefs.getInt('userId') ?? 0;
                 print("Saved userId from prefs: $userId");
                 Navigator.push(
                   context,

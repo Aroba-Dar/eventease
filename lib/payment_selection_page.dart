@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:event_ease/add_new_card_page.dart';
+import 'package:event_ease/others/add_new_card_page.dart';
 import 'package:event_ease/review_summary_page.dart';
 
 class PaymentSelectionPage extends StatefulWidget {
@@ -78,21 +78,21 @@ class _PaymentSelectionPageState extends State<PaymentSelectionPage> {
                         ),
                       ),
                     ),
-                  ElevatedButton(
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => AddNewCardPage()),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.purple[100],
-                      foregroundColor: Colors.purple[700],
-                      minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: const Text("Add New Card"),
-                  ),
+                  // ElevatedButton(
+                  //   onPressed: () => Navigator.push(
+                  //     context,
+                  //     MaterialPageRoute(builder: (context) => AddNewCardPage()),
+                  //   ),
+                  //   style: ElevatedButton.styleFrom(
+                  //     backgroundColor: Colors.purple[100],
+                  //     foregroundColor: Colors.purple[700],
+                  //     minimumSize: const Size(double.infinity, 50),
+                  //     shape: RoundedRectangleBorder(
+                  //       borderRadius: BorderRadius.circular(10),
+                  //     ),
+                  //   ),
+                  //   child: const Text("Add New Card"),
+                  // ),
                   const SizedBox(height: 30),
                   ElevatedButton(
                     onPressed: _isProcessing ? null : _handlePayment,

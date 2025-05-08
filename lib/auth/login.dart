@@ -11,9 +11,11 @@ class LoginRegisterPage extends StatefulWidget {
 }
 
 class _LoginRegisterPageState extends State<LoginRegisterPage> {
+  // Boolean to toggle between Login/Register mode
   bool isLogin = true;
   bool isAccepted = false;
 
+  // Controllers to manage text inputs
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final firstNameController = TextEditingController();
@@ -21,13 +23,19 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
   final dobController = TextEditingController();
   final phoneController = TextEditingController();
 
+  // Dropdown selections
   String? selectedGender;
   String? selectedCountry;
 
+  // API base URL
   final String apiBase = 'http://192.168.1.6:8081/users';
+
+  // App primary color
   final Color primaryColor = const Color(0xFF9C27B0); // Logo purple color
 
+  // Handle Login/Register button click
   void handleSubmit() async {
+    // Validation for registration
     if (!isLogin &&
         (emailController.text.isEmpty ||
             passwordController.text.isEmpty ||
@@ -39,12 +47,16 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
             selectedCountry == null ||
             !isAccepted)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Please fill in all fields and accept terms")),
+        const SnackBar(
+            content: Text("Please fill in all fields and accept terms")),
       );
       return;
     }
 
+    // API endpoint for login/register
     String url = isLogin ? "$apiBase/login" : "$apiBase/register";
+
+    // Payload based on login/register mode
     final Map<String, dynamic> payload = isLogin
         ? {
             'email': emailController.text,
@@ -64,36 +76,29 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
           };
 
     try {
+      // API call
       final response = await http.post(
         Uri.parse(url),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(payload),
       );
 
+      // Success
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
 
+        // Save user details in SharedPreferences
         final prefs = await SharedPreferences.getInstance();
-        // ✅ Safely parse and store user_id
         if (data.containsKey('user_id')) {
           await prefs.setInt('userId', data['user_id']);
-          print("Saved user_id to prefs: ${data['user_id']}");
-        } else {
-          print("⚠️ 'user_id' not found in response");
         }
         await prefs.setBool('isGuest', false);
         await prefs.setBool('isLoggedIn', true);
         await prefs.setString(
-            'userName', '${data['firstName'] ?? ''} ${data['lastName'] ?? ''}');
+            'userName', '${data['firstName']} ${data['lastName']}');
         await prefs.setString('userEmail', data['email'] ?? '');
-        await prefs.setString('userPhone', data['phone'] ?? '');
-        await prefs.setString('firstName', data['firstName'] ?? '');
-        await prefs.setString('lastName', data['lastName'] ?? '');
-        await prefs.setString('gender', data['gender'] ?? 'Male');
-        await prefs.setString('country', data['country'] ?? '');
-        await prefs.setString('dateOfBirth', data['dateOfBirth'] ?? '');
-        // await prefs.setInt('userId', data['user_id']);
 
+        // Navigation to Home Page
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text(
@@ -101,14 +106,15 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
         );
         Navigator.pushReplacementNamed(context, '/home');
       } else {
+        // Failure
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Error: ${response.body}")),
         );
       }
     } catch (e) {
-      print(e);
+      // Error handling
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("An error occurred. Please try again.")),
+        const SnackBar(content: Text("An error occurred. Please try again.")),
       );
     }
   }
@@ -117,12 +123,14 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      // Main body scrollable
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 60),
+            // App logo
             Center(
               child: Image.asset(
                 'assets/images/app_logo.jpeg',
@@ -131,16 +139,13 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
               ),
             ),
             const SizedBox(height: 20),
+            // Welcome Text
             RichText(
               text: TextSpan(
                 children: [
-                  TextSpan(
+                  const TextSpan(
                     text: "Welcome to ",
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w400,
-                    ),
+                    style: TextStyle(color: Colors.black, fontSize: 22),
                   ),
                   TextSpan(
                     text: "EventEase",
@@ -148,30 +153,22 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
                       color: primaryColor,
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      fontFamily: 'Roboto', // or any font you prefer
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 8),
-            const Text(
-              "A smart ticketing app",
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 16,
-              ),
-            ),
             const SizedBox(height: 30),
+            // Dynamic heading based on login/register
             Text(
               isLogin ? "Login" : "Register",
               style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: primaryColor,
-              ),
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: primaryColor),
             ),
             const SizedBox(height: 20),
+            // Conditionally rendered Registration fields
             if (!isLogin) ...[
               _buildTextField("First Name", firstNameController),
               _buildTextField("Last Name", lastNameController),
@@ -181,119 +178,25 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
               _buildDropdownField(
                   "Country", ["United States", "Canada", "United Kingdom"]),
             ],
+            // Always rendered fields (Email & Password)
             _buildTextField("Email", emailController),
             _buildTextField("Password", passwordController, obscureText: true),
-            if (!isLogin)
-              Row(
-                children: [
-                  Checkbox(
-                    value: isAccepted,
-                    onChanged: (value) {
-                      setState(() {
-                        isAccepted = value!;
-                      });
-                    },
-                    activeColor: primaryColor,
-                  ),
-                  Expanded(
-                    child: RichText(
-                      text: TextSpan(
-                        text: "I accept the ",
-                        style: TextStyle(color: Colors.black),
-                        children: [
-                          TextSpan(
-                            text: "Terms of Service and Privacy Policy",
-                            style: TextStyle(
-                                color: primaryColor,
-                                decoration: TextDecoration.underline),
-                          ),
-                          TextSpan(text: " (Required)"),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            // Accept Terms Checkbox
+            if (!isLogin) _acceptTermsCheckbox(),
             const SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                // backgroundColor: Colors.white,
-                elevation: 3,
-                side: BorderSide(color: primaryColor),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 19, vertical: 9),
-              ),
-              onPressed: handleSubmit,
-              child: Text(
-                isLogin ? "Login" : "Register",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: primaryColor,
-                ),
-              ),
-            ),
+            // Submit Button
+            _submitButton(),
             const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  isLogin
-                      ? "Don't have an account? "
-                      : "Already have an account? ",
-                  style: const TextStyle(color: Colors.black),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      isLogin = !isLogin;
-                    });
-                  },
-                  child: Text(
-                    isLogin ? "Register" : "Login",
-                    style: TextStyle(
-                      color: primaryColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            _toggleLoginRegister(),
             const SizedBox(height: 20),
-            Divider(
-              thickness: 1,
-              color: Colors.grey.shade500,
-              height: 20,
-            ),
-            TextButton(
-              onPressed: () async {
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.setBool('isGuest', true);
-                await prefs.setBool('isLoggedIn', false);
-                await prefs.setString('userName', 'Guest');
-                await prefs.setString('userEmail', '');
-                await prefs.setString('userPhone', '');
-                await prefs.setString('gender', 'Male');
-                Navigator.pushReplacementNamed(context, '/home');
-              },
-              child: Text(
-                "Continue as Guest",
-                style: TextStyle(
-                  color: primaryColor,
-                  fontSize: 17,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
+            _guestLogin(),
           ],
         ),
       ),
     );
   }
 
+  // Helper widget for text fields
   Widget _buildTextField(String label, TextEditingController controller,
       {bool obscureText = false}) {
     return Padding(
@@ -303,20 +206,19 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
         obscureText: obscureText,
         decoration: InputDecoration(
           labelText: label,
-          border: OutlineInputBorder(),
+          border: const OutlineInputBorder(),
         ),
       ),
     );
   }
 
+  // Helper widget for dropdown fields
   Widget _buildDropdownField(String label, List<String> options) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: DropdownButtonFormField<String>(
         decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(),
-        ),
+            labelText: label, border: const OutlineInputBorder()),
         items: options
             .map((option) =>
                 DropdownMenuItem(value: option, child: Text(option)))
@@ -331,12 +233,15 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
     );
   }
 
+  // Helper widget for date picker
   Widget _buildDateField(String label, TextEditingController controller) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: TextField(
         controller: controller,
         readOnly: true,
+        decoration: InputDecoration(
+            labelText: label, suffixIcon: const Icon(Icons.calendar_today)),
         onTap: () async {
           DateTime? pickedDate = await showDatePicker(
             context: context,
@@ -348,11 +253,96 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
             controller.text = "${pickedDate.toLocal()}".split(' ')[0];
           }
         },
-        decoration: const InputDecoration(
-          labelText: 'Date of Birth',
-          suffixIcon: Icon(Icons.calendar_today),
-          border: OutlineInputBorder(),
+      ),
+    );
+  }
+
+  // Accept Terms Field
+  Widget _acceptTermsCheckbox() {
+    return Row(
+      children: [
+        Checkbox(
+          value: isAccepted,
+          onChanged: (value) {
+            setState(() {
+              isAccepted = value!;
+            });
+          },
+          activeColor: primaryColor,
         ),
+        Expanded(
+          child: RichText(
+            text: TextSpan(
+              text: "I accept the ",
+              style: const TextStyle(color: Colors.black),
+              children: [
+                TextSpan(
+                  text: "Terms of Service and Privacy Policy",
+                  style: TextStyle(
+                      color: primaryColor,
+                      decoration: TextDecoration.underline),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Submit (Login/Register) Button
+  Widget _submitButton() {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        elevation: 3,
+        side: BorderSide(color: primaryColor),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        padding: const EdgeInsets.symmetric(horizontal: 19, vertical: 9),
+      ),
+      onPressed: handleSubmit,
+      child: Text(
+        isLogin ? "Login" : "Register",
+        style: TextStyle(
+            fontSize: 18, fontWeight: FontWeight.bold, color: primaryColor),
+      ),
+    );
+  }
+
+  // Toggle between Login & Register text
+  Widget _toggleLoginRegister() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(isLogin ? "Don't have an account? " : "Already have an account? "),
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              isLogin = !isLogin;
+            });
+          },
+          child: Text(
+            isLogin ? "Register" : "Login",
+            style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Continue as Guest Option
+  Widget _guestLogin() {
+    return TextButton(
+      onPressed: () async {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isGuest', true);
+        await prefs.setBool('isLoggedIn', false);
+        await prefs.setString('userName', 'Guest');
+        Navigator.pushReplacementNamed(context, '/home');
+      },
+      child: Text(
+        "Continue as Guest",
+        style: TextStyle(
+            color: primaryColor, fontSize: 17, fontWeight: FontWeight.w500),
       ),
     );
   }

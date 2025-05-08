@@ -2,8 +2,7 @@ import 'dart:convert';
 import 'package:event_ease/event_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
-import 'category.dart'; // make sure this is the updated one
+import 'category.dart';
 
 class PopularEventsPage extends StatefulWidget {
   const PopularEventsPage({super.key});
@@ -13,35 +12,49 @@ class PopularEventsPage extends StatefulWidget {
 }
 
 class _PopularEventsPageState extends State<PopularEventsPage> {
+  // List to store fetched events
   List<dynamic> events = [];
+  // Currently selected category for filtering events
   String selectedCategory = 'All';
+  // Loading state to show a progress indicator while fetching data
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    // Fetch events when the widget is initialized
     fetchEvents();
   }
 
+  // Method to fetch events from the server
   Future<void> fetchEvents() async {
-    final response =
-        await http.get(Uri.parse('http://192.168.1.6:8081/events'));
+    try {
+      final response =
+          await http.get(Uri.parse('http://192.168.1.6:8081/events'));
 
-    if (response.statusCode == 200) {
-      final List<dynamic> eventList = json.decode(response.body);
+      if (response.statusCode == 200) {
+        // Parse the response body and update the state
+        final List<dynamic> eventList = json.decode(response.body);
 
-      setState(() {
-        events = eventList;
-        isLoading = false;
-      });
-    } else {
+        setState(() {
+          events = eventList;
+          isLoading = false;
+        });
+      } else {
+        // Handle error response
+        setState(() => isLoading = false);
+        throw Exception('Failed to load events');
+      }
+    } catch (e) {
+      // Handle network or parsing errors
       setState(() => isLoading = false);
-      throw Exception('Failed to load events');
+      print('Error fetching events: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Filter events based on the selected category
     final List<dynamic> displayedEvents = selectedCategory == 'All'
         ? events
         : events.where((e) => e['category'] == selectedCategory).toList();
@@ -59,6 +72,7 @@ class _PopularEventsPageState extends State<PopularEventsPage> {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
+                  // CategoryBar widget for selecting event categories
                   CategoryBar(
                     selectedCategory: selectedCategory,
                     onCategorySelected: (category) {
@@ -68,18 +82,20 @@ class _PopularEventsPageState extends State<PopularEventsPage> {
                     },
                   ),
                   const SizedBox(height: 16),
+                  // GridView to display events in a grid layout
                   Expanded(
                     child: GridView.builder(
                       itemCount: displayedEvents.length,
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 12,
-                        crossAxisSpacing: 12,
-                        childAspectRatio: 0.7,
+                        crossAxisCount: 2, // Number of columns
+                        mainAxisSpacing: 12, // Vertical spacing
+                        crossAxisSpacing: 12, // Horizontal spacing
+                        childAspectRatio: 0.7, // Aspect ratio of grid items
                       ),
                       itemBuilder: (context, index) {
                         final event = displayedEvents[index];
+                        // Render each event as an EventCard
                         return EventCard(event: event);
                       },
                     ),
@@ -91,6 +107,7 @@ class _PopularEventsPageState extends State<PopularEventsPage> {
   }
 }
 
+// StatelessWidget to display individual event details in a card
 class EventCard extends StatelessWidget {
   final dynamic event;
 
@@ -100,6 +117,7 @@ class EventCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
+        // Navigate to EventDetailsPage when the card is tapped
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -113,21 +131,23 @@ class EventCard extends StatelessWidget {
                 'location': event['location'] ?? '',
                 'imageUrl': event['imageUrl'] ?? '',
                 'description': event['description'] ?? '',
-                'organizerName':
-                    event['organizer'] ?? '', // Corrected to use organizer
-                'organizerImage': event['organizerImage'] ??
-                    '', // Corrected to use organizerImage
+                'organizerName': event['organizer'] ?? '', // Organizer's name
+                'organizerImage':
+                    event['organizerImage'] ?? '', // Organizer's image
               },
             ),
           ),
         );
       },
       child: Card(
-        elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        elevation: 4, // Shadow depth of the card
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12), // Rounded corners
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Display event image
             AspectRatio(
               aspectRatio: 16 / 9,
               child: ClipRRect(
@@ -136,11 +156,12 @@ class EventCard extends StatelessWidget {
                 child: Image.network(
                   event['imageUrl'] ?? '',
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) =>
-                      const Icon(Icons.broken_image),
+                  errorBuilder: (context, error, stackTrace) => const Icon(
+                      Icons.broken_image), // Fallback for broken images
                 ),
               ),
             ),
+            // Display event title
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
@@ -150,6 +171,7 @@ class EventCard extends StatelessWidget {
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
+            // Display event date and time
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Text(
