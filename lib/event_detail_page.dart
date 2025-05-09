@@ -50,10 +50,16 @@ class _EventDetailsPageState extends State<EventDetailsPage>
   }
 
   @override
+  @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Refresh location when the app resumes
     if (state == AppLifecycleState.resumed) {
-      _getCurrentLocation();
+      Future.delayed(Duration(milliseconds: 500), () async {
+        try {
+          await _getCurrentLocation();
+        } catch (e) {
+          print("Location refresh failed on resume: $e");
+        }
+      });
     }
   }
 
@@ -70,37 +76,22 @@ class _EventDetailsPageState extends State<EventDetailsPage>
   // Fetch user's current location
   Future<void> _getCurrentLocation() async {
     try {
-      // Request location permission
-      final permission = await Permission.locationWhenInUse.request();
+      final permission = await Permission.locationWhenInUse.status;
       if (!permission.isGranted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Location permission not granted")),
-        );
-        return;
+        await Permission.locationWhenInUse.request();
       }
 
-      location.Location locationService = location.Location();
-      bool serviceEnabled = await locationService.serviceEnabled();
-      if (!serviceEnabled) {
-        // Request to enable location service
-        serviceEnabled = await locationService.requestService();
-        if (!serviceEnabled) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Location service not enabled")),
-          );
-          return;
-        }
+      final locationService = location.Location();
+      if (!await locationService.serviceEnabled()) {
+        await locationService.requestService();
       }
 
-      // Get the current location
       final locationData = await locationService.getLocation();
-      if (mounted) {
-        setState(() {
-          _currentLocation = locationData;
-        });
-      }
+      setState(() {
+        _currentLocation = locationData;
+      });
     } catch (e) {
-      print("Error getting location: $e");
+      print("Error getting location on resume: $e");
     }
   }
 
@@ -118,6 +109,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
     try {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
+        if (!mounted) return;
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Could not open maps")),
@@ -454,9 +446,9 @@ class _EventDetailsPageState extends State<EventDetailsPage>
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        "assets/images/event1.jpg",
-                        "assets/images/event2.jpg",
-                        "assets/images/event3.jpg",
+                        "assets/images/event_1.png",
+                        "assets/images/event_2.jpg",
+                        "assets/images/event_3.jpg",
                       ]
                           .map((img) => Padding(
                                 padding: const EdgeInsets.only(right: 8),
@@ -473,7 +465,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
                           .toList(),
                     ),
                   ),
-                  const SizedBox(height: 80),
+                  // const SizedBox(height: 80),
                 ],
               ),
             ),
