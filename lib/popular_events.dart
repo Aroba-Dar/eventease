@@ -52,6 +52,33 @@ class _PopularEventsPageState extends State<PopularEventsPage> {
     }
   }
 
+  // Method to handle image rendering based on URL type
+  Widget buildImage(String imageUrl) {
+    // Check if imageUrl starts with "http" or "https"
+    if (imageUrl.startsWith('http')) {
+      return Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+            const Icon(Icons.broken_image),
+      );
+    }
+
+    // Otherwise, assume it's base64
+    try {
+      final base64Str = imageUrl.split(',').last; // Remove prefix if any
+      final bytes = base64Decode(base64Str);
+      return Image.memory(
+        bytes,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+            const Icon(Icons.broken_image),
+      );
+    } catch (e) {
+      return const Icon(Icons.broken_image);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Filter events based on the selected category
@@ -96,7 +123,7 @@ class _PopularEventsPageState extends State<PopularEventsPage> {
                       itemBuilder: (context, index) {
                         final event = displayedEvents[index];
                         // Render each event as an EventCard
-                        return EventCard(event: event);
+                        return EventCard(event: event, buildImage: buildImage);
                       },
                     ),
                   ),
@@ -110,8 +137,9 @@ class _PopularEventsPageState extends State<PopularEventsPage> {
 // StatelessWidget to display individual event details in a card
 class EventCard extends StatelessWidget {
   final dynamic event;
+  final Widget Function(String) buildImage;
 
-  const EventCard({super.key, required this.event});
+  const EventCard({super.key, required this.event, required this.buildImage});
 
   @override
   Widget build(BuildContext context) {
@@ -153,12 +181,7 @@ class EventCard extends StatelessWidget {
               child: ClipRRect(
                 borderRadius:
                     const BorderRadius.vertical(top: Radius.circular(12)),
-                child: Image.network(
-                  event['imageUrl'] ?? '',
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => const Icon(
-                      Icons.broken_image), // Fallback for broken images
-                ),
+                child: buildImage(event['imageUrl'] ?? ''),
               ),
             ),
             // Display event title

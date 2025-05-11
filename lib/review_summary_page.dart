@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:event_ease/pin_page.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -44,6 +46,29 @@ class _ReviewSummaryPageState extends State<ReviewSummaryPage> {
     });
   }
 
+  Widget _buildEventImage(String imageData) {
+    if (imageData.startsWith('http')) {
+      // It's a network image
+      return Image.network(
+        imageData,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
+      );
+    } else {
+      // It's a Base64 image
+      try {
+        final bytes = base64Decode(imageData);
+        return Image.memory(
+          bytes,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
+        );
+      } catch (e) {
+        return const Icon(Icons.broken_image);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final taxAmount = widget.totalPrice * 0.1; // Calculate 10% tax
@@ -83,14 +108,14 @@ class _ReviewSummaryPageState extends State<ReviewSummaryPage> {
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(
                                         10), // Rounded corners
-                                    image: DecorationImage(
-                                      image: NetworkImage(
-                                          widget.event['imageUrl'] ??
-                                              ''), // Event image URL
-                                      fit: BoxFit.cover,
-                                    ),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: _buildEventImage(
+                                        widget.event['imageUrl'] ?? ''),
                                   ),
                                 ),
+
                                 const SizedBox(
                                     width:
                                         16), // Space between image and details

@@ -308,22 +308,47 @@ class _EventDetailsPageState extends State<EventDetailsPage>
     return favorites.contains(widget.event['id'].toString());
   }
 
-  // Build image widget for event images
-  Widget _buildImage(dynamic imageUrl) {
-    if (imageUrl != null && imageUrl.isNotEmpty) {
+  // bool isValidUrl(String url) {
+  //   final uri = Uri.tryParse(url);
+  //   return uri != null &&
+  //       uri.hasScheme &&
+  //       (uri.scheme == 'http' || uri.scheme == 'https');
+  // }
+
+  Widget _buildImage(String imageUrl) {
+    // Check if imageUrl starts with "http" or "https"
+    if (imageUrl.startsWith('http') || imageUrl.startsWith('https')) {
       return Image.network(
         imageUrl,
         fit: BoxFit.cover,
         width: double.infinity,
-        errorBuilder: (context, error, stackTrace) =>
-            const Icon(Icons.broken_image),
+        errorBuilder: (context, error, stackTrace) {
+          print("Error loading network image: $error");
+          return const Icon(Icons.broken_image);
+        },
       );
-    } else {
-      return Image.asset(
-        "assets/images/notfound.png",
+    }
+
+    // Otherwise, assume it's base64
+    try {
+      // Print the base64 string to debug
+      print("Base64 Image String: $imageUrl");
+
+      final base64Str = imageUrl.split(',').last; // Remove prefix if any
+      final bytes = base64Decode(base64Str);
+
+      return Image.memory(
+        bytes,
         fit: BoxFit.cover,
         width: double.infinity,
+        errorBuilder: (context, error, stackTrace) {
+          print("Error loading Base64 image: $error");
+          return const Icon(Icons.broken_image);
+        },
       );
+    } catch (e) {
+      print("Base64 decode failed: $e");
+      return const Icon(Icons.broken_image);
     }
   }
 
@@ -343,7 +368,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
                   background: CarouselSlider(
                     options: CarouselOptions(height: 300, autoPlay: true),
                     items: [(event['imageUrl'] ?? '')]
-                        .map<Widget>(_buildImage)
+                        .map<Widget>((image) => _buildImage(image as String))
                         .toList(),
                   ),
                 ),

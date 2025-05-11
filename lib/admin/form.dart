@@ -1,41 +1,28 @@
 import 'dart:io';
+import 'dart:convert';
+import 'package:event_ease/admin/description.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
 
-// Form to allow organizers to add a new event
 class OrganizerEventForm extends StatefulWidget {
   @override
   _OrganizerEventFormState createState() => _OrganizerEventFormState();
 }
 
 class _OrganizerEventFormState extends State<OrganizerEventForm> {
-  final _formKey = GlobalKey<FormState>(); // Key for the form
+  final _formKey = GlobalKey<FormState>();
 
-  // Fields for event details
-  String title = "", location = "", about = "";
-  String category = "Music"; // Default category
-  List<String> categories = [
-    "Workshop",
-    "Art",
-    "Sports",
-    "Festival",
-    "Music",
-    "Food",
-    "Education"
-  ]; // List of categories
-  DateTime? eventDate; // Selected event date
-  TimeOfDay? startTime; // Selected start time
-  File? eventImage; // Cover image for the event
-  List<File> galleryImages = []; // Gallery images for the event
+  String title = "", location = "", about = "", category = "Music";
+  DateTime? eventDate;
+  TimeOfDay? startTime;
+  File? eventImage;
+  int organizerId = 4; // Replace with actual organizer ID
+  int? eventId; // <-- Added this for accessing eventId later
 
-  // Fields for seat and pricing details
-  int economySeats = 0, vipSeats = 0;
-  double economyPrice = 0, vipPrice = 0, discount = 0;
+  final picker = ImagePicker();
 
-  final picker = ImagePicker(); // Image picker instance
-
-  // Method to pick a cover image for the event
   Future pickEventImage() async {
     final picked = await picker.pickImage(source: ImageSource.gallery);
     if (picked != null) {
@@ -43,21 +30,11 @@ class _OrganizerEventFormState extends State<OrganizerEventForm> {
     }
   }
 
-  // Method to pick multiple gallery images for the event
-  Future pickGalleryImages() async {
-    final picked = await picker.pickMultiImage(imageQuality: 80);
-    setState(() {
-      galleryImages =
-          picked.take(3).map((e) => File(e.path)).toList(); // Limit to 3 images
-    });
-  }
-
-  // Method to pick the event date and time
   Future pickDateTime() async {
     final pickedDate = await showDatePicker(
       context: context,
-      firstDate: DateTime.now(), // Prevent selecting past dates
-      lastDate: DateTime(2100), // Allow future dates
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2100),
       initialDate: DateTime.now(),
     );
     if (pickedDate != null) {
@@ -74,10 +51,8 @@ class _OrganizerEventFormState extends State<OrganizerEventForm> {
     }
   }
 
-  // Method to format the selected date and time for display
   String getFormattedDateTime() {
     if (eventDate == null || startTime == null) return 'Pick Date & Time';
-
     final startDateTime = DateTime(
       eventDate!.year,
       eventDate!.month,
@@ -85,230 +60,219 @@ class _OrganizerEventFormState extends State<OrganizerEventForm> {
       startTime!.hour,
       startTime!.minute,
     );
+    final endDateTime = startDateTime.add(Duration(hours: 1));
+    final dayFormat = DateFormat('E, MMM d');
+    final timeOnlyFormat = DateFormat('HH:mm');
+    final timeWithAmPmFormat = DateFormat('hh:mm a');
 
-    final endDateTime =
-        startDateTime.add(Duration(hours: 1)); // Default event duration: 1 hour
-
-    final dayFormat = DateFormat('E, MMM d'); // Format: Tue, Feb 20
-    final timeFormat = DateFormat.jm(); // Format: 11:00 AM
-
-    return "${dayFormat.format(startDateTime)} · ${timeFormat.format(startDateTime)} - ${timeFormat.format(endDateTime)}";
+    return "${dayFormat.format(startDateTime)} . "
+        "${timeOnlyFormat.format(startDateTime)} - "
+        "${timeWithAmPmFormat.format(endDateTime)}";
   }
 
-  // Method to handle form submission
-  void handleSubmit() {
-    if (_formKey.currentState!.validate() && eventImage != null) {
-      // Show success message if form is valid and image is uploaded
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Event submitted successfully!")),
+  Future<void> handleSubmit() async {
+    if (_formKey.currentState!.validate() &&
+        eventImage != null &&
+        eventDate != null &&
+        startTime != null) {
+      String formattedDateTime = getFormattedDateTime();
+      final bytes = await eventImage!.readAsBytes();
+      final base64Image = base64Encode(bytes);
+
+      final eventData = {
+        "title": title,
+        "category": category,
+        "dateTime": formattedDateTime,
+        "location": location,
+        "imageUrl": base64Image,
+        "organizer": {
+          "organizerId": organizerId,
+        }
+      };
+
+      final response = await http.post(
+        Uri.parse('http://192.168.1.6:8081/events/add_events'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(eventData),
       );
-    } else {
-      // Show error message if form is incomplete
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Fill all fields and upload image.")),
-      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+        setState(() {
+          eventId = responseData['eventId']; // <-- Save eventId
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+                  Text("Event submitted successfully! Event ID: $eventId")),
+        );
+      } else {
+        print("Error Status: ${response.statusCode}");
+        print("Error Body: ${response.body}");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  "Error: ${response.statusCode} ${response.reasonPhrase}")),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor =
-        Color.fromARGB(255, 156, 39, 176); // Primary color for the form
-
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        centerTitle: true, // Center the title
-        backgroundColor: primaryColor,
-        title: Text(
-          "Add New Event",
-          style: TextStyle(color: Colors.white),
-        ),
+        centerTitle: true,
+        title: Text("Add Event",
+            style: TextStyle(
+                fontSize: 20,
+                color: Colors.white,
+                fontWeight: FontWeight.bold)),
+        backgroundColor: Color.fromARGB(255, 156, 39, 176),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16), // Padding for the form
+        padding: EdgeInsets.all(16),
         child: Form(
-          key: _formKey, // Assign the form key
+          key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Section title
-              Text("Event Details",
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: primaryColor)),
-              SizedBox(height: 16),
-
-              // Event Title
+              SizedBox(height: 23),
               TextFormField(
-                decoration: InputDecoration(labelText: "Event Title"),
-                validator: (val) =>
-                    val!.isEmpty ? "Enter title" : null, // Validation
-                onChanged: (val) => title = val, // Update title
+                decoration: InputDecoration(
+                  labelText: 'Title of Event',
+                  // filled: true,
+                  // fillColor: Color.fromARGB(255, 250, 226, 246),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                        color: Color.fromARGB(255, 156, 39, 176), width: 2),
+                  ),
+                ),
+                validator: (value) => value!.isEmpty ? 'Enter title' : null,
+                onChanged: (value) => setState(() => title = value),
               ),
               SizedBox(height: 10),
-
-              // Category Dropdown
+              TextFormField(
+                decoration: InputDecoration(
+                  labelText: 'Location',
+                  // filled: true,
+                  // fillColor: Color.fromARGB(255, 255, 243, 250),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                        color: Color.fromARGB(255, 156, 39, 176), width: 2),
+                  ),
+                ),
+                validator: (value) => value!.isEmpty ? 'Enter location' : null,
+                onChanged: (value) => setState(() => location = value),
+              ),
+              SizedBox(height: 10),
               DropdownButtonFormField<String>(
                 value: category,
-                decoration: InputDecoration(labelText: "Category"),
-                onChanged: (val) =>
-                    setState(() => category = val!), // Update category
-                items: categories
+                icon: Icon(Icons.arrow_drop_down,
+                    color: Color.fromARGB(255, 156, 39, 176)),
+                decoration: InputDecoration(
+                  labelText: 'Select Category',
+                  // filled: true,
+                  // fillColor: Color.fromARGB(255, 255, 243, 250),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                        color: Color.fromARGB(255, 156, 39, 176), width: 2),
+                  ),
+                ),
+                items: [
+                  'Workshop',
+                  'Art',
+                  'Sports',
+                  'Festival',
+                  'Music',
+                  'Food',
+                  'Education'
+                ]
                     .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                     .toList(),
+                onChanged: (val) => setState(() => category = val!),
               ),
               SizedBox(height: 10),
-
-              // Location
-              TextFormField(
-                decoration: InputDecoration(labelText: "Location"),
-                validator: (val) =>
-                    val!.isEmpty ? "Enter location" : null, // Validation
-                onChanged: (val) => location = val, // Update location
+              ListTile(
+                title: Text(getFormattedDateTime()),
+                trailing: Icon(Icons.calendar_today,
+                    color: Color.fromARGB(255, 156, 39, 176)),
+                onTap: pickDateTime,
               ),
-              SizedBox(height: 16),
-
-              // Date/Time Picker
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(getFormattedDateTime(),
-                      style: TextStyle(fontWeight: FontWeight.w500)),
-                  ElevatedButton(
-                    onPressed: pickDateTime, // Open date/time picker
-                    child: Text(
-                      "Pick Date & Time",
-                      style: TextStyle(color: primaryColor),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-
-              // Cover Image
-              Text("Cover Image",
-                  style: TextStyle(fontWeight: FontWeight.w600)),
-              SizedBox(height: 5),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  eventImage == null
-                      ? Container(
-                          width: 100,
-                          height: 100,
-                          color: Colors.grey[300], // Placeholder background
-                          child:
-                              Icon(Icons.image, size: 40), // Placeholder icon
-                        )
-                      : Image.file(eventImage!,
-                          width: 100, height: 100), // Display selected image
-                  SizedBox(width: 10),
-                  ElevatedButton(
-                    onPressed: pickEventImage, // Open image picker
-                    child: Text(
-                      "Pick Cover Image",
-                      style: TextStyle(color: primaryColor),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-
-              // About
-              TextFormField(
-                decoration: InputDecoration(labelText: "About Event"),
-                maxLines: 3, // Multi-line input
-                validator: (val) =>
-                    val!.isEmpty ? "Enter details" : null, // Validation
-                onChanged: (val) => about = val, // Update about
-              ),
-              SizedBox(height: 16),
-
-              // Gallery
-              Text("Gallery Images (max 3)",
-                  style: TextStyle(fontWeight: FontWeight.w600)),
-              SizedBox(height: 5),
-              Wrap(
-                spacing: 8, // Space between images
-                children: galleryImages
-                    .map((img) => Image.file(img,
-                        width: 60, height: 60, fit: BoxFit.cover))
-                    .toList(),
-              ),
-              ElevatedButton(
-                onPressed: pickGalleryImages, // Open gallery picker
-                child: Text(
-                  "Pick Gallery Images",
-                  style: TextStyle(color: primaryColor),
-                ),
-              ),
-              SizedBox(height: 16),
-
-              // Seats Row
-              Row(children: [
-                Expanded(
-                  child: TextFormField(
-                    decoration: InputDecoration(labelText: "Economy Seats"),
-                    keyboardType: TextInputType.number, // Numeric input
-                    onChanged: (val) => economySeats =
-                        int.tryParse(val) ?? 0, // Update economy seats
-                  ),
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                  child: TextFormField(
-                    decoration: InputDecoration(labelText: "VIP Seats"),
-                    keyboardType: TextInputType.number, // Numeric input
-                    onChanged: (val) =>
-                        vipSeats = int.tryParse(val) ?? 0, // Update VIP seats
-                  ),
-                ),
-              ]),
               SizedBox(height: 10),
-
-              // Prices Row
-              Row(children: [
-                Expanded(
-                  child: TextFormField(
-                    decoration: InputDecoration(labelText: "Economy Price"),
-                    keyboardType: TextInputType.number, // Numeric input
-                    onChanged: (val) => economyPrice =
-                        double.tryParse(val) ?? 0, // Update economy price
+              GestureDetector(
+                onTap: pickEventImage,
+                child: Container(
+                  height: 180,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(255, 241, 206, 236),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                  child: TextFormField(
-                    decoration: InputDecoration(labelText: "VIP Price"),
-                    keyboardType: TextInputType.number, // Numeric input
-                    onChanged: (val) => vipPrice =
-                        double.tryParse(val) ?? 0, // Update VIP price
-                  ),
-                ),
-              ]),
-              SizedBox(height: 10),
-
-              // Discount
-              TextFormField(
-                decoration: InputDecoration(labelText: "Discount (%)"),
-                keyboardType: TextInputType.number, // Numeric input
-                onChanged: (val) =>
-                    discount = double.tryParse(val) ?? 0, // Update discount
-              ),
-              SizedBox(height: 25),
-
-              // Submit Button
-              Center(
-                child: ElevatedButton(
-                  onPressed: handleSubmit, // Submit the form
-                  child: Text(
-                    "Submit Event",
-                    style: TextStyle(color: primaryColor),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: eventImage != null
+                        ? Image.file(eventImage!, fit: BoxFit.cover)
+                        : Center(child: Text("Tap to select event image")),
                   ),
                 ),
               ),
               SizedBox(height: 20),
+              Center(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 156, 39, 176),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 40, vertical: 15),
+                  ),
+                  onPressed: handleSubmit,
+                  child: Text("Submit Event",
+                      style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold)),
+                ),
+              ),
+              SizedBox(height: 10),
+              Center(
+                child: TextButton.icon(
+                  onPressed: eventId != null
+                      ? () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  DescriptionEvent(eventId: eventId!),
+                            ),
+                          );
+                        }
+                      : null,
+                  icon: Icon(Icons.arrow_forward,
+                      color: Color.fromARGB(255, 156, 39, 176)),
+                  label: Text(
+                    "Go to Add Description",
+                    style: TextStyle(
+                      color: Color.fromARGB(255, 156, 39, 176),
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
