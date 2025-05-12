@@ -6,6 +6,7 @@ class Event {
   final String location;
   final String category;
   final String imageUrl;
+  final int organizerId;
   final String organizer;
   final String organizerImage;
 
@@ -17,6 +18,7 @@ class Event {
     required this.location,
     required this.category,
     required this.imageUrl,
+    required this.organizerId,
     required this.organizer,
     required this.organizerImage,
   });
@@ -30,6 +32,7 @@ class Event {
       location: json['location'],
       category: json['category'],
       imageUrl: json['imageUrl'],
+      organizerId: json['organizerId'],
       organizer: json['organizer'],
       organizerImage: json['organizerImage'],
     );

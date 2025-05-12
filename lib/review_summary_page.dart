@@ -71,7 +71,7 @@ class _ReviewSummaryPageState extends State<ReviewSummaryPage> {
 
   @override
   Widget build(BuildContext context) {
-    final taxAmount = widget.totalPrice * 0.1; // Calculate 10% tax
+    final taxAmount = widget.totalPrice * 0.01; // Calculate 10% tax
     final grandTotal = widget.totalPrice + taxAmount; // Calculate grand total
 
     return Scaffold(
@@ -188,7 +188,7 @@ class _ReviewSummaryPageState extends State<ReviewSummaryPage> {
                                     "${widget.seatCount} Seat${widget.seatCount > 1 ? 's' : ''} (${widget.event['category'] ?? 'General'})",
                                     "\$${widget.totalPrice.toStringAsFixed(2)}"),
                                 // Tax details
-                                _buildSummaryRow("Tax (10%)",
+                                _buildSummaryRow("Tax (1%)",
                                     "\$${taxAmount.toStringAsFixed(2)}"),
                                 const Divider(), // Divider line
                                 // Grand total

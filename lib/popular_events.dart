@@ -31,6 +31,7 @@ class _PopularEventsPageState extends State<PopularEventsPage> {
     try {
       final response =
           await http.get(Uri.parse('http://192.168.1.6:8081/events'));
+      // chexk organizer id is present or not
 
       if (response.statusCode == 200) {
         // Parse the response body and update the state
@@ -158,6 +159,7 @@ class EventCard extends StatelessWidget {
                 'time': event['dateTime']?.split('.')[1] ?? '',
                 'location': event['location'] ?? '',
                 'imageUrl': event['imageUrl'] ?? '',
+                'organizerId': event['organizerId'] ?? '',
                 'description': event['description'] ?? '',
                 'organizerName': event['organizer'] ?? '', // Organizer's name
                 'organizerImage':

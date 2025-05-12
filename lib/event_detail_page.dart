@@ -28,12 +28,16 @@ class _EventDetailsPageState extends State<EventDetailsPage>
   location.LocationData? _currentLocation; // Stores the user's current location
 
   String? _aboutDescription;
+  List<String> imageUrls = []; // To store image URLs fetched from the database
 
   @override
   void initState() {
     super.initState();
+    print("Organizer ID: ${widget.event['organizerId']}");
 
-    WidgetsBinding.instance.addObserver(this); // Observe app lifecycle changes
+    WidgetsBinding.instance.addObserver(this);
+    fetchEventGallery(widget.event[
+        'id']); // Fetch the gallery images // Observe app lifecycle changes
     fetchEventAbout(widget.event['id']).then((desc) {
       setState(() {
         _aboutDescription = desc;
@@ -43,13 +47,30 @@ class _EventDetailsPageState extends State<EventDetailsPage>
     _getCurrentLocation(); // Fetch user's current location
   }
 
+  Future<void> fetchEventGallery(int eventId) async {
+    final response = await http.get(
+      Uri.parse('http://192.168.1.6:8081/api/event-gallery/$eventId'),
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> galleryData = jsonDecode(response.body);
+      setState(() {
+        imageUrls = galleryData
+            .map<String>((image) => image['imageUrl']?.toString() ?? '')
+            .where((url) => url.isNotEmpty)
+            .toList();
+      });
+    } else {
+      print('Failed to load event gallery: ${response.statusCode}');
+    }
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this); // Remove observer on dispose
     super.dispose();
   }
 
-  @override
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
@@ -316,7 +337,6 @@ class _EventDetailsPageState extends State<EventDetailsPage>
   // }
 
   Widget _buildImage(String imageUrl) {
-    // Check if imageUrl starts with "http" or "https"
     if (imageUrl.startsWith('http') || imageUrl.startsWith('https')) {
       return Image.network(
         imageUrl,
@@ -324,17 +344,14 @@ class _EventDetailsPageState extends State<EventDetailsPage>
         width: double.infinity,
         errorBuilder: (context, error, stackTrace) {
           print("Error loading network image: $error");
-          return const Icon(Icons.broken_image);
+          return const Icon(Icons.broken_image, size: 50);
         },
       );
     }
 
-    // Otherwise, assume it's base64
     try {
-      // Print the base64 string to debug
-      print("Base64 Image String: $imageUrl");
-
-      final base64Str = imageUrl.split(',').last; // Remove prefix if any
+      final base64Str =
+          imageUrl.contains(',') ? imageUrl.split(',').last : imageUrl;
       final bytes = base64Decode(base64Str);
 
       return Image.memory(
@@ -343,12 +360,12 @@ class _EventDetailsPageState extends State<EventDetailsPage>
         width: double.infinity,
         errorBuilder: (context, error, stackTrace) {
           print("Error loading Base64 image: $error");
-          return const Icon(Icons.broken_image);
+          return const Icon(Icons.broken_image, size: 50);
         },
       );
     } catch (e) {
       print("Base64 decode failed: $e");
-      return const Icon(Icons.broken_image);
+      return const Icon(Icons.broken_image, size: 50);
     }
   }
 
@@ -467,30 +484,33 @@ class _EventDetailsPageState extends State<EventDetailsPage>
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        "assets/images/event_1.png",
-                        "assets/images/event_2.jpg",
-                        "assets/images/event_3.jpg",
-                      ]
-                          .map((img) => Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.asset(
-                                    img,
-                                    height: 100,
-                                    width: 100,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ))
-                          .toList(),
-                    ),
-                  ),
-                  // const SizedBox(height: 80),
+                  imageUrls.isNotEmpty
+                      ? CarouselSlider(
+                          options: CarouselOptions(
+                            height: 100.0,
+                            enlargeCenterPage: true,
+                            autoPlay: true,
+                            aspectRatio: 16 / 10, //
+                            autoPlayCurve: Curves.fastOutSlowIn,
+                            enableInfiniteScroll: true,
+                            autoPlayAnimationDuration:
+                                const Duration(milliseconds: 500),
+                            viewportFraction: 0.4,
+                          ),
+                          items: imageUrls.map((url) {
+                            return Builder(
+                              builder: (BuildContext context) {
+                                return Container(
+                                  width: MediaQuery.of(context).size.width,
+                                  margin: const EdgeInsets.symmetric(
+                                      horizontal: 4.0),
+                                  child: _buildImage(url),
+                                );
+                              },
+                            );
+                          }).toList(),
+                        )
+                      : const Center(child: Text("No images available")),
                 ],
               ),
             ),

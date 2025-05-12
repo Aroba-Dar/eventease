@@ -13,12 +13,13 @@ class SeatPricingPage extends StatefulWidget {
 
 class _SeatPricingPageState extends State<SeatPricingPage> {
   final _formKey = GlobalKey<FormState>();
-
   final TextEditingController _economyPriceController = TextEditingController();
   final TextEditingController _vipPriceController = TextEditingController();
   final TextEditingController _discountController = TextEditingController();
   final TextEditingController _economySeatsController = TextEditingController();
   final TextEditingController _vipSeatsController = TextEditingController();
+
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -32,17 +33,20 @@ class _SeatPricingPageState extends State<SeatPricingPage> {
 
   void _submitData() async {
     if (_formKey.currentState!.validate()) {
-      // Get data from controllers and convert them to required types
+      setState(() => _isSubmitting = true);
+
       final Map<String, dynamic> seatData = {
         "eventId": widget.eventId,
         "economyPrice": double.parse(_economyPriceController.text),
         "vipPrice": double.parse(_vipPriceController.text),
-        "discount": double.parse(_discountController.text),
         "economySeats": int.parse(_economySeatsController.text),
         "vipSeats": int.parse(_vipSeatsController.text),
       };
 
-      // Send POST request to backend
+      if (_discountController.text.isNotEmpty) {
+        seatData["discount"] = double.parse(_discountController.text);
+      }
+
       try {
         final response = await http.post(
           Uri.parse("http://192.168.1.6:8081/api/seat-pricing"),
@@ -50,20 +54,24 @@ class _SeatPricingPageState extends State<SeatPricingPage> {
           body: jsonEncode(seatData),
         );
 
+        print("Response Code: ${response.statusCode}");
+        print("Response Body: ${response.body}");
+
         if (response.statusCode == 200 || response.statusCode == 201) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Seat data submitted successfully!")),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text("Submission failed: ${response.statusCode}")),
+            SnackBar(content: Text("Submission failed: ${response.body}")),
           );
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Error: $e")),
         );
+      } finally {
+        setState(() => _isSubmitting = false);
       }
     }
   }
@@ -113,8 +121,6 @@ class _SeatPricingPageState extends State<SeatPricingPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Text("Event ID: ${widget.eventId}",
-              // style: TextStyle(fontSize: 18, color: Colors.black)),
               SizedBox(height: 20),
               Text("Enter Seat Availability",
                   style: TextStyle(
@@ -166,20 +172,23 @@ class _SeatPricingPageState extends State<SeatPricingPage> {
               ),
               SizedBox(height: 20),
               _buildInputCard(
-                title: "Discount (%)",
-                hint: "10",
+                title: "Discount (%) (optional)",
+                hint: "Leave empty if no discount",
                 controller: _discountController,
               ),
               SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _submitData,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color.fromARGB(255, 156, 39, 176),
-                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                ),
-                child: Text("Upload Seat Information",
-                    style: TextStyle(color: Colors.white)),
-              ),
+              _isSubmitting
+                  ? CircularProgressIndicator()
+                  : ElevatedButton(
+                      onPressed: _submitData,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color.fromARGB(255, 156, 39, 176),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      ),
+                      child: Text("Upload Seat Information",
+                          style: TextStyle(color: Colors.white)),
+                    ),
             ],
           ),
         ),
