@@ -75,7 +75,7 @@ class ETicketPage extends StatelessWidget {
                   children: [
                     _buildDetailRow("Name", userName),
                     _buildDetailRow("Contact", userContact),
-                    _buildDetailRow("Booking ID", bookingId),
+                    // _buildDetailRow("Booking ID", bookingId),
                   ],
                 ),
               ),
