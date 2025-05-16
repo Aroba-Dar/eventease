@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
@@ -40,30 +41,91 @@ class _QRVerifierPageState extends State<QRVerifierPage> {
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) async {
-      controller.pauseCamera(); // stop scanning after 1 result
-      final qrCode = scanData.code;
+      controller.pauseCamera();
 
-      // Make HTTP call to verify QR code here
-      final isValid = await _verifyQRCode(qrCode ?? '');
+      // Remove invisible characters from scanned QR code
+      String? qrCodeRaw = scanData.code
+          ?.trim()
+          .replaceAll(RegExp(r'[\n\r\t\u200B-\u200D\uFEFF]'), '');
+      print('📦 Raw scanned QR code: "$qrCodeRaw"');
+
+      if (qrCodeRaw == null || qrCodeRaw.isEmpty) {
+        setState(() {
+          result = '❌ Empty QR Code';
+        });
+        controller.resumeCamera();
+        return;
+      }
+
+      String bookingId = '';
+      int eventId = 1;
+
+      try {
+        final data = jsonDecode(qrCodeRaw);
+        bookingId = data['bookingId'] ?? '';
+        final eventIdRaw = data['eventId']?.toString() ?? '';
+        eventId = int.tryParse(eventIdRaw) ?? 1;
+        print('✅ Parsed JSON -> bookingId: $bookingId, eventId: $eventId');
+      } catch (e) {
+        print('❌ JSON decode error: $e');
+        bookingId = qrCodeRaw;
+        print('⚠️ Not JSON, using entire QR as bookingId');
+      }
+
+      if (bookingId.isEmpty) {
+        setState(() {
+          result = '❌ Invalid QR Code data';
+        });
+        controller.resumeCamera();
+        return;
+      }
+
+      final isValid = await _verifyQRCode(bookingId, eventId);
 
       setState(() {
-        result =
-            isValid ? '✅ Valid Ticket: $qrCode' : '❌ Invalid or Expired Ticket';
+        result = isValid
+            ? '✅ Valid Ticket\nBooking ID: $bookingId\nEvent ID: $eventId'
+            : '❌ Invalid or Expired Ticket';
       });
 
-      // resume scanning after short delay if needed
       await Future.delayed(Duration(seconds: 3));
       controller.resumeCamera();
     });
   }
 
-  Future<bool> _verifyQRCode(String code) async {
+  Future<bool> _verifyQRCode(String bookingId, int eventId) async {
     try {
-      final url = Uri.parse('http://192.168.1.6:8081/api/qr/verify?code=$code');
-      final response = await http.get(url);
-      return response.statusCode == 200;
+      final queryParams = {
+        'bookingId': bookingId,
+        'eventId': eventId.toString(),
+      };
+
+      final uri = Uri(
+        scheme: 'http',
+        host: '192.168.1.6',
+        port: 8081,
+        path: '/api/tickets/verify',
+        queryParameters: queryParams,
+      );
+
+      print('🌐 Verify URL: $uri');
+
+      final response = await http.get(uri);
+
+      print('🔁 Response Code: ${response.statusCode}');
+      print('📦 Raw Response Body: ${response.body}');
+      print('✅ Parsed bookingId: "$bookingId", eventId: $eventId');
+
+      final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+      final status = jsonResponse['status']?.toString().toUpperCase() ?? '';
+      final message = jsonResponse['message'] ?? '';
+
+      print('✅ Status: $status');
+      print('💬 Message: $message');
+
+      return status == 'VALID';
     } catch (e) {
-      print('QR Verify Error: $e');
+      print('❗ Error verifying ticket: $e');
       return false;
     }
   }
@@ -98,7 +160,11 @@ class _QRVerifierPageState extends State<QRVerifierPage> {
           Expanded(
             flex: 1,
             child: Center(
-              child: Text(result, style: TextStyle(fontSize: 16)),
+              child: Text(
+                result,
+                style: TextStyle(fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
         ],

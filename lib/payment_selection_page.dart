@@ -39,6 +39,8 @@ class _PaymentSelectionPageState extends State<PaymentSelectionPage> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('Organizer ID: ${widget.event['organizerId']}');
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Payments"),

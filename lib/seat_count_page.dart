@@ -63,6 +63,7 @@ class _BookEventSeatPageState extends State<BookEventSeatPage> {
   @override
   Widget build(BuildContext context) {
     final eventName = widget.event['name'] ?? "Event Seat Booking";
+    debugPrint('Organizer ID: ${widget.event['organizerId']}');
 
     return Scaffold(
       appBar: AppBar(

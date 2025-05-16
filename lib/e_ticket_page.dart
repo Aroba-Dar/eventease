@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -12,8 +14,11 @@ class ETicketPage extends StatelessWidget {
   final String eventDate;
   final String eventLocation;
   final String userName;
+  final String userEmail;
   final String userContact;
   final String bookingId;
+  final int organizerId;
+  final int eventId;
 
   const ETicketPage({
     super.key,
@@ -21,12 +26,16 @@ class ETicketPage extends StatelessWidget {
     required this.eventDate,
     required this.eventLocation,
     required this.userName,
+    required this.userEmail,
     required this.userContact,
     required this.bookingId,
+    required this.organizerId,
+    required this.eventId,
   });
 
   @override
   Widget build(BuildContext context) {
+    print('Organizer ID in ETicketPage: $organizerId');
     return Scaffold(
       appBar: AppBar(
         title: Text("E-Ticket"),
@@ -38,10 +47,14 @@ class ETicketPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             QrImageView(
-              data: bookingId,
+              data: jsonEncode({
+                "bookingId": bookingId,
+                "eventId": eventId,
+              }),
               version: QrVersions.auto,
               size: 200,
             ),
+
             SizedBox(height: 20),
 
             // Event Details
@@ -74,8 +87,11 @@ class ETicketPage extends StatelessWidget {
                 child: Column(
                   children: [
                     _buildDetailRow("Name", userName),
+                    _buildDetailRow("Email", userEmail),
                     _buildDetailRow("Contact", userContact),
-                    // _buildDetailRow("Booking ID", bookingId),
+                    _buildDetailRow("Booking ID", bookingId),
+                    _buildDetailRow("organizer ID", organizerId.toString()),
+                    _buildDetailRow("Event ID", eventId.toString()),
                   ],
                 ),
               ),
@@ -116,6 +132,28 @@ class ETicketPage extends StatelessWidget {
   }
 
   void _downloadTicket(BuildContext context) async {
+    final response = await http.post(
+      Uri.parse("http://192.168.1.6:8081/api/tickets/tickets"),
+      headers: {"Content-Type": "application/json"},
+      body: json.encode({
+        "bookingId": bookingId,
+        "eventName": eventName,
+        "eventDate": eventDate,
+        "eventLocation": eventLocation,
+        "userName": userName,
+        "userEmail": userEmail,
+        "userContact": userContact,
+        "organizerId": organizerId,
+        "eventId": eventId
+      }),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      print("Ticket stored successfully.");
+    } else {
+      print("Failed to store ticket: ${response.body}");
+    }
+
     final status = await Permission.storage.request();
 
     if (!status.isGranted) {
@@ -130,7 +168,10 @@ class ETicketPage extends StatelessWidget {
     try {
       // Generate QR code image
       final qrValidationResult = QrValidator.validate(
-        data: bookingId,
+        data: jsonEncode({
+          "bookingId": bookingId,
+          "eventId": eventId, // ✅ Include eventId here
+        }),
         version: QrVersions.auto,
         errorCorrectionLevel: QrErrorCorrectLevel.Q,
       );

@@ -7,8 +7,11 @@ class PaymentResultPopup extends StatelessWidget {
   final String eventDate; // Date of the event
   final String eventLocation; // Location of the event
   final String userName; // Name of the user
+  final String userEmail; // Contact information of the user
   final String userContact; // Contact information of the user
   final String bookingId; // Booking ID for the event
+  final int organizerId; // Organizer ID for the event
+  final int eventId; // Event ID for the event
 
   const PaymentResultPopup({
     super.key,
@@ -16,8 +19,11 @@ class PaymentResultPopup extends StatelessWidget {
     required this.eventDate,
     required this.eventLocation,
     required this.userName,
+    required this.userEmail,
     required this.userContact,
     required this.bookingId,
+    required this.organizerId,
+    required this.eventId,
   });
 
   @override
@@ -85,8 +91,11 @@ class PaymentResultPopup extends StatelessWidget {
                             eventDate: eventDate,
                             eventLocation: eventLocation,
                             userName: userName,
+                            userEmail: userEmail,
                             userContact: userContact,
                             bookingId: bookingId,
+                            organizerId: organizerId,
+                            eventId: eventId,
                           ),
                         ),
                       );

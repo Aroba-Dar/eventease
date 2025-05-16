@@ -265,6 +265,8 @@ class _EnterPinPageState extends State<EnterPinPage> {
       };
 
       debugPrint('Booking data: $bookingData');
+      debugPrint('Organizer ID: ${widget.event['organizerId']}');
+      debugPrint('Event ID: ${widget.event['id']}');
 
       // For testing purposes, bypass the API call with a mock booking ID
       final bookingId = "BK-${DateTime.now().millisecondsSinceEpoch}";
@@ -278,8 +280,11 @@ class _EnterPinPageState extends State<EnterPinPage> {
             eventDate: widget.event['date'] ?? 'Date not specified',
             eventLocation: widget.event['location'] ?? 'Venue not specified',
             userName: widget.userName,
+            userEmail: widget.userEmail,
             userContact: widget.userPhone,
             bookingId: bookingId,
+            organizerId: widget.event['organizerId'],
+            eventId: widget.event['id'],
           ),
         ),
       );

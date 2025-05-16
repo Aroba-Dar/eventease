@@ -73,6 +73,7 @@ class _ReviewSummaryPageState extends State<ReviewSummaryPage> {
   Widget build(BuildContext context) {
     final taxAmount = widget.totalPrice * 0.01; // Calculate 10% tax
     final grandTotal = widget.totalPrice + taxAmount; // Calculate grand total
+    debugPrint('Organizer ID: ${widget.event['organizerId']}');
 
     return Scaffold(
       appBar: AppBar(

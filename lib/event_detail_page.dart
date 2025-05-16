@@ -372,6 +372,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
   @override
   Widget build(BuildContext context) {
     final event = widget.event;
+    debugPrint('Organizer ID: ${widget.event['organizerId']}');
 
     return Scaffold(
       body: Stack(
