@@ -12,7 +12,7 @@ class QRVerifierPage extends StatefulWidget {
 class _QRVerifierPageState extends State<QRVerifierPage> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   QRViewController? controller;
-  String result = 'Scan a QR code to verify ticket.';
+  String result = 'Scan a QR code to verify ticket';
 
   @override
   void initState() {
@@ -140,7 +140,19 @@ class _QRVerifierPageState extends State<QRVerifierPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(title: Text('QR Code Scanner')),
+      appBar: AppBar(
+        backgroundColor: Color.fromARGB(255, 156, 39, 176),
+        title: Text(
+          'QR Code Scanner',
+          style: TextStyle(color: Colors.white),
+        ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+      ),
       body: Column(
         children: [
           Expanded(
@@ -162,7 +174,7 @@ class _QRVerifierPageState extends State<QRVerifierPage> {
             child: Center(
               child: Text(
                 result,
-                style: TextStyle(fontSize: 16),
+                style: TextStyle(fontSize: 18),
                 textAlign: TextAlign.center,
               ),
             ),

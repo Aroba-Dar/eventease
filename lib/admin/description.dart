@@ -5,9 +5,13 @@ import 'package:http/http.dart' as http;
 
 class DescriptionEvent extends StatefulWidget {
   final int eventId;
+  final int organizerId; // <-- Add this line
 
-  const DescriptionEvent({Key? key, required this.eventId}) : super(key: key);
-
+  const DescriptionEvent({
+    Key? key,
+    required this.eventId,
+    required this.organizerId, // <-- Add this
+  }) : super(key: key);
   @override
   _DescriptionEventState createState() => _DescriptionEventState();
 }
@@ -144,7 +148,9 @@ class _DescriptionEventState extends State<DescriptionEvent> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => UploadGalleryImagesPage(
-                                  eventId: widget.eventId),
+                                eventId: widget.eventId,
+                                organizerId: widget.organizerId, // pass it here
+                              ),
                             ),
                           );
                         },
@@ -155,7 +161,9 @@ class _DescriptionEventState extends State<DescriptionEvent> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => UploadGalleryImagesPage(
-                                  eventId: widget.eventId),
+                                eventId: widget.eventId,
+                                organizerId: widget.organizerId, // pass it here
+                              ),
                             ),
                           );
                         },

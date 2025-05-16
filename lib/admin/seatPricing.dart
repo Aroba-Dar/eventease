@@ -1,11 +1,17 @@
+import 'package:event_ease/admin/admin_home.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class SeatPricingPage extends StatefulWidget {
   final int eventId;
+  final int organizerId;
 
-  const SeatPricingPage({Key? key, required this.eventId}) : super(key: key);
+  const SeatPricingPage({
+    Key? key,
+    required this.eventId,
+    required this.organizerId,
+  }) : super(key: key);
 
   @override
   _SeatPricingPageState createState() => _SeatPricingPageState();
@@ -189,6 +195,27 @@ class _SeatPricingPageState extends State<SeatPricingPage> {
                       child: Text("Upload Seat Information",
                           style: TextStyle(color: Colors.white)),
                     ),
+              SizedBox(height: 30),
+              TextButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) =>
+                              AdminHomePage(organizerId: widget.organizerId)));
+                  // or use a custom HomeScreen()
+                },
+                icon: Icon(Icons.arrow_forward,
+                    color: Color.fromARGB(255, 156, 39, 176)),
+                label: Text(
+                  'Go to Home Page',
+                  style: TextStyle(
+                    color: Color.fromARGB(255, 156, 39, 176),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             ],
           ),
         ),

@@ -7,9 +7,12 @@ import 'package:http/http.dart' as http;
 
 class UploadGalleryImagesPage extends StatefulWidget {
   final int eventId;
-
-  const UploadGalleryImagesPage({Key? key, required this.eventId})
-      : super(key: key);
+  final int organizerId;
+  const UploadGalleryImagesPage({
+    Key? key,
+    required this.eventId,
+    required this.organizerId,
+  }) : super(key: key);
 
   @override
   State<UploadGalleryImagesPage> createState() =>
@@ -143,8 +146,9 @@ class _UploadGalleryImagesPageState extends State<UploadGalleryImagesPage> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => SeatPricingPage(
-                      eventId: widget.eventId, // Passing eventId
-                    ),
+                        eventId: widget.eventId,
+                        organizerId: widget.organizerId // Passing eventId
+                        ),
                   ),
                 );
               },

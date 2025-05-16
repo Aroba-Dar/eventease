@@ -7,6 +7,9 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
 class OrganizerEventForm extends StatefulWidget {
+  final int organizerId;
+
+  const OrganizerEventForm({super.key, required this.organizerId});
   @override
   _OrganizerEventFormState createState() => _OrganizerEventFormState();
 }
@@ -125,6 +128,12 @@ class _OrganizerEventFormState extends State<OrganizerEventForm> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         title: Text("Add Event",
             style: TextStyle(
                 fontSize: 20,
@@ -255,8 +264,9 @@ class _OrganizerEventFormState extends State<OrganizerEventForm> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  DescriptionEvent(eventId: eventId!),
+                              builder: (context) => DescriptionEvent(
+                                  eventId: eventId!,
+                                  organizerId: widget.organizerId),
                             ),
                           );
                         }

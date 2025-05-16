@@ -1,4 +1,7 @@
-import 'package:event_ease/admin/admin_home.dart';
+// import 'package:event_ease/admin/admin_home.dart';
+import 'package:event_ease/admin/login_screen.dart';
+import 'package:event_ease/admin/signup_screen.dart';
+import 'package:event_ease/admin/welcome.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 // import 'auth/login.dart';
@@ -34,7 +37,12 @@ class EventEaseApp extends StatelessWidget {
       //       const LoginRegisterPage(), // Login/Register screen
       //   '/home': (context) => const HomePage(), // Home screen after login
       // },
-      home: AdminHomePage(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => OrganizerLandingPage(),
+        '/login': (context) => LoginScreen(),
+        '/signup': (context) => SignupScreen(),
+      },
     );
   }
 }
