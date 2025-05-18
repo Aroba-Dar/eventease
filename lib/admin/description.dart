@@ -5,12 +5,12 @@ import 'package:http/http.dart' as http;
 
 class DescriptionEvent extends StatefulWidget {
   final int eventId;
-  final int organizerId; // <-- Add this line
+  final int organizerId; // Organizer ID for navigation
 
   const DescriptionEvent({
     Key? key,
     required this.eventId,
-    required this.organizerId, // <-- Add this
+    required this.organizerId, // Organizer ID required
   }) : super(key: key);
   @override
   _DescriptionEventState createState() => _DescriptionEventState();
@@ -22,14 +22,14 @@ class _DescriptionEventState extends State<DescriptionEvent> {
   bool isSubmitting = false;
   bool isDescriptionSubmitted = false; // Track if description is submitted
 
+  // Submits the event description to the backend API.
   Future<void> submitDescription() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => isSubmitting = true);
 
     final response = await http.post(
-      Uri.parse(
-          'http://192.168.1.6:8081/api/about-event/events'), // Your backend endpoint
+      Uri.parse('http://192.168.1.6:8081/api/about-event/events'),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
         "eventId": widget.eventId,
@@ -40,12 +40,14 @@ class _DescriptionEventState extends State<DescriptionEvent> {
     setState(() => isSubmitting = false);
 
     if (response.statusCode == 200) {
+      // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("About event content added successfully.")),
       );
       setState(
           () => isDescriptionSubmitted = true); // Mark description as submitted
     } else {
+      // Show error message
       print("Error: ${response.statusCode} - ${response.body}");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Failed to submit content")),
@@ -69,6 +71,7 @@ class _DescriptionEventState extends State<DescriptionEvent> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Card for description input form
               Card(
                 elevation: 5,
                 shape: RoundedRectangleBorder(
@@ -87,6 +90,7 @@ class _DescriptionEventState extends State<DescriptionEvent> {
                           ),
                         ),
                         SizedBox(height: 10),
+                        // Text field for event description
                         TextFormField(
                           controller: _descriptionController,
                           maxLines: 5,
@@ -105,6 +109,7 @@ class _DescriptionEventState extends State<DescriptionEvent> {
                                   : null,
                         ),
                         SizedBox(height: 20),
+                        // Button to submit description
                         ElevatedButton.icon(
                           icon: isSubmitting
                               ? SizedBox(
@@ -131,13 +136,14 @@ class _DescriptionEventState extends State<DescriptionEvent> {
                   ),
                 ),
               ),
-              // Show the arrow button and Go to Upload Gallery Images button after description is submitted
+              // Show navigation buttons after description is submitted
               if (isDescriptionSubmitted)
                 Padding(
                   padding: const EdgeInsets.only(top: 20.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      // Arrow button to go to gallery upload
                       IconButton(
                         icon: Icon(
                           Icons.arrow_forward,
@@ -155,6 +161,7 @@ class _DescriptionEventState extends State<DescriptionEvent> {
                           );
                         },
                       ),
+                      // Text button to go to gallery upload
                       TextButton(
                         onPressed: () {
                           Navigator.push(

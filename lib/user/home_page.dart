@@ -1,11 +1,11 @@
 import 'dart:convert';
-import 'package:event_ease/event_detail_page.dart';
-import 'package:event_ease/favourite_page.dart';
-import 'package:event_ease/profile_page.dart';
+import 'package:event_ease/user/event_detail_page.dart';
+import 'package:event_ease/user/favourite_page.dart';
+import 'package:event_ease/user/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'models/event.dart';
+import '../models/event.dart';
 import 'popular_events.dart';
 import 'category.dart';
 
@@ -332,7 +332,7 @@ class _HomePageState extends State<HomePage> {
                                 );
                               },
                               child: Container(
-                                width: 260,
+                                width: 240,
                                 margin: const EdgeInsets.only(right: 12),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
@@ -348,23 +348,31 @@ class _HomePageState extends State<HomePage> {
                                     ClipRRect(
                                       borderRadius: const BorderRadius.vertical(
                                           top: Radius.circular(12)),
-                                      child: Image.network(
-                                        event.imageUrl,
-                                        height: 140,
-                                        width: double.infinity,
-                                        fit: BoxFit.cover,
-                                        errorBuilder:
-                                            (context, error, stackTrace) =>
-                                                Container(
-                                          height: 140,
-                                          color: Colors.grey.shade300,
-                                          child: const Icon(Icons.broken_image,
-                                              color: Colors.grey),
-                                        ),
-                                      ),
+                                      child: event.imageUrl.startsWith('http')
+                                          ? Image.network(
+                                              event.imageUrl,
+                                              height: 140,
+                                              width: double.infinity,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (context, error,
+                                                      stackTrace) =>
+                                                  Container(
+                                                height: 140,
+                                                color: Colors.grey.shade300,
+                                                child: const Icon(
+                                                    Icons.broken_image,
+                                                    color: Colors.grey),
+                                              ),
+                                            )
+                                          : Image.memory(
+                                              base64Decode(event.imageUrl),
+                                              height: 140,
+                                              width: double.infinity,
+                                              fit: BoxFit.cover,
+                                            ),
                                     ),
                                     Padding(
-                                      padding: const EdgeInsets.all(8.0),
+                                      padding: const EdgeInsets.all(10.0),
                                       child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,

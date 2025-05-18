@@ -1,3 +1,4 @@
+// Model class representing an event organizer with all relevant details.
 class Organizer {
   final int organizerId;
   final String organizerName;
@@ -21,6 +22,7 @@ class Organizer {
     required this.country,
   });
 
+  // Creates an Organizer instance from a JSON map.
   factory Organizer.fromJson(Map<String, dynamic> json) {
     return Organizer(
       organizerId: json['organizerId'],

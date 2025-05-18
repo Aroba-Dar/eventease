@@ -25,6 +25,7 @@ class _UploadGalleryImagesPageState extends State<UploadGalleryImagesPage> {
 
   final ImagePicker _picker = ImagePicker();
 
+  // Pick up to 3 images from the gallery
   Future<void> pickImages() async {
     final List<XFile>? picked = await _picker.pickMultiImage();
     if (picked != null && picked.length <= 3) {
@@ -36,6 +37,7 @@ class _UploadGalleryImagesPageState extends State<UploadGalleryImagesPage> {
     }
   }
 
+  // Upload selected images to the backend as base64 strings
   Future<void> uploadImages() async {
     if (_images.isEmpty) return;
 
@@ -98,6 +100,7 @@ class _UploadGalleryImagesPageState extends State<UploadGalleryImagesPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // Button to pick images
             ElevatedButton.icon(
               onPressed: pickImages,
               icon: Icon(Icons.photo_library, color: Colors.white),
@@ -120,6 +123,7 @@ class _UploadGalleryImagesPageState extends State<UploadGalleryImagesPage> {
               ],
             ),
             SizedBox(height: 20),
+            // Button to upload images
             ElevatedButton.icon(
               onPressed: isUploading ? null : uploadImages,
               icon: isUploading

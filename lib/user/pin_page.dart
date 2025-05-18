@@ -1,4 +1,4 @@
-import 'package:event_ease/payment_result_page.dart';
+import 'package:event_ease/user/payment_result_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -305,9 +305,15 @@ class _EnterPinPageState extends State<EnterPinPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text("Verify OTP"),
+        backgroundColor: Color.fromARGB(255, 156, 39, 176),
+        title: const Text("Verify OTP", style: TextStyle(color: Colors.white)),
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context), // Back button
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -321,6 +327,7 @@ class _EnterPinPageState extends State<EnterPinPage> {
             const SizedBox(height: 30),
 
             // OTP Input Fields
+
             GestureDetector(
               onTap: () => FocusScope.of(context).requestFocus(_focusNode),
               child: Row(
@@ -331,6 +338,8 @@ class _EnterPinPageState extends State<EnterPinPage> {
                     height: 45,
                     margin: const EdgeInsets.symmetric(horizontal: 5),
                     decoration: BoxDecoration(
+                      //focus color
+
                       border: Border.all(
                         color: index == currentOtpIndex
                             ? Theme.of(context).primaryColor
@@ -366,7 +375,9 @@ class _EnterPinPageState extends State<EnterPinPage> {
                   ? const CircularProgressIndicator(color: Colors.white)
                   : const Text(
                       "VERIFY & CONTINUE",
-                      style: TextStyle(fontSize: 16),
+                      style: TextStyle(
+                          fontSize: 16,
+                          color: Color.fromARGB(255, 156, 39, 176)),
                     ),
             ),
             const SizedBox(height: 15),
@@ -374,7 +385,8 @@ class _EnterPinPageState extends State<EnterPinPage> {
               onPressed: _isLoading ? null : _generateOtp, // Resend OTP button
               child: const Text(
                 "Resend OTP",
-                style: TextStyle(fontSize: 16),
+                style: TextStyle(
+                    fontSize: 16, color: Color.fromARGB(255, 156, 39, 176)),
               ),
             ),
 

@@ -22,6 +22,7 @@ class _MyTicketsPageState extends State<MyTicketsPage> {
     fetchTickets();
   }
 
+  // Fetches tickets for the organizer from the backend
   Future<void> fetchTickets() async {
     final url = Uri.parse(
         'http://192.168.1.6:8081/api/tickets/organizer/${widget.organizerId}');
@@ -47,6 +48,7 @@ class _MyTicketsPageState extends State<MyTicketsPage> {
     }
   }
 
+  // Helper widget to display a row with an icon and label/value
   Widget infoRow(IconData icon, String label) {
     // Split label at first colon for bold styling
     final splitIndex = label.indexOf(':');
@@ -91,17 +93,21 @@ class _MyTicketsPageState extends State<MyTicketsPage> {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
+      // Show loading indicator while fetching data
       return Center(child: CircularProgressIndicator());
     }
 
     if (errorMessage.isNotEmpty) {
+      // Show error message if fetch failed
       return Center(child: Text(errorMessage));
     }
 
     if (tickets.isEmpty) {
+      // Show message if no tickets found
       return Center(child: Text("No tickets found."));
     }
 
+    // Build a list of ticket cards
     return ListView.builder(
       itemCount: tickets.length,
       itemBuilder: (context, index) {

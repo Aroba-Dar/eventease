@@ -1,4 +1,4 @@
-import 'package:event_ease/seat_count_page.dart';
+import 'package:event_ease/user/seat_count_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -96,13 +96,14 @@ class _BookEventPageState extends State<BookEventPage> {
     final eventName = widget.event['name'] ?? "Book Event";
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(eventName, style: TextStyle(color: Colors.black)),
-        backgroundColor: Colors.white,
+        title: Text(eventName, style: TextStyle(color: Colors.white)),
+        backgroundColor: Color.fromARGB(255, 156, 39, 176),
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -118,7 +119,18 @@ class _BookEventPageState extends State<BookEventPage> {
             _buildTextField("Phone Number", "+123456789", _phoneController),
             _buildTextField("Password", "********", _passwordController,
                 obscureText: true),
-            _buildDropdownField("Country", ["United States", "Canada", "UK"]),
+            _buildDropdownField("Country", [
+              "United States",
+              "Canada",
+              "UK",
+              "Australia",
+              "India",
+              "Pakistan",
+              "Bangladesh",
+              "Germany",
+              "France",
+              "Italy"
+            ]),
             SizedBox(height: 16),
             Row(
               children: [
@@ -138,7 +150,8 @@ class _BookEventPageState extends State<BookEventPage> {
                       children: [
                         TextSpan(
                           text: "Terms of Service and Privacy Policy",
-                          style: TextStyle(color: Colors.blue),
+                          style: TextStyle(
+                              color: Color.fromARGB(255, 156, 39, 176)),
                         ),
                         TextSpan(text: " (Required)"),
                       ],
@@ -151,7 +164,9 @@ class _BookEventPageState extends State<BookEventPage> {
             ElevatedButton(
               onPressed: isAccepted ? _submitForm : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: isAccepted ? Colors.blueAccent : Colors.grey,
+                backgroundColor: isAccepted
+                    ? Color.fromARGB(255, 156, 39, 176)
+                    : Colors.grey,
                 minimumSize: Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
@@ -180,7 +195,10 @@ class _BookEventPageState extends State<BookEventPage> {
         decoration: InputDecoration(
           labelText: label,
           hintText: placeholder,
-          border: OutlineInputBorder(),
+          focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+            color: Color.fromARGB(255, 156, 39, 176),
+          )),
         ),
       ),
     );
@@ -190,8 +208,11 @@ class _BookEventPageState extends State<BookEventPage> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: DropdownButtonFormField<String>(
-        decoration:
-            InputDecoration(labelText: label, border: OutlineInputBorder()),
+        decoration: InputDecoration(
+            labelText: label,
+            focusedBorder: OutlineInputBorder(
+                borderSide: const BorderSide(
+                    color: Color.fromARGB(255, 156, 39, 176)))),
         items: options.map((option) {
           return DropdownMenuItem(value: option, child: Text(option));
         }).toList(),
@@ -224,8 +245,12 @@ class _BookEventPageState extends State<BookEventPage> {
         },
         decoration: InputDecoration(
           labelText: label,
-          suffixIcon: Icon(Icons.calendar_today),
-          border: OutlineInputBorder(),
+          suffixIcon: Icon(Icons.calendar_today,
+              color: Color.fromARGB(255, 156, 39, 176)),
+          focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+            color: Color.fromARGB(255, 156, 39, 176),
+          )),
         ),
       ),
     );

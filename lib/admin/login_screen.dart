@@ -13,6 +13,7 @@ class _LoginScreenState extends State<LoginScreen> {
   TextEditingController emailCtrl = TextEditingController();
   TextEditingController passwordCtrl = TextEditingController();
 
+  // Handles login logic and navigation
   Future<void> _login() async {
     final url = Uri.parse('http://192.168.1.6:8081/organizers/login');
     final response = await http.post(
@@ -29,6 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
       await prefs.setString('organizerName', organizer['organizerName']);
       // save other needed info as well
 
+      // Navigate to admin home page on successful login
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -36,6 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     } else {
+      // Show error message for invalid credentials
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text('Invalid credentials')));
     }
@@ -62,6 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Email input field
               TextField(
                 controller: emailCtrl,
                 keyboardType: TextInputType.emailAddress,
@@ -79,6 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 20),
+              // Password input field
               TextField(
                 controller: passwordCtrl,
                 obscureText: true,
@@ -96,6 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 30),
+              // Login button
               SizedBox(
                 width: double.infinity,
                 height: 50,

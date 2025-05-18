@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:event_ease/pin_page.dart';
+import 'package:event_ease/user/pin_page.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -76,9 +76,16 @@ class _ReviewSummaryPageState extends State<ReviewSummaryPage> {
     debugPrint('Organizer ID: ${widget.event['organizerId']}');
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text("Review Summary"), // AppBar title
+        backgroundColor: const Color.fromARGB(255, 156, 39, 176),
+        title: const Text("Review Summary",
+            style: TextStyle(color: Colors.white)), // AppBar title
         centerTitle: true, // Center the title
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context), // Back button
+        ),
       ),
       body: _isLoading
           ? const Center(
@@ -99,7 +106,7 @@ class _ReviewSummaryPageState extends State<ReviewSummaryPage> {
                                 BorderRadius.circular(16), // Rounded corners
                           ),
                           child: Padding(
-                            padding: const EdgeInsets.all(16.0),
+                            padding: const EdgeInsets.all(12.0),
                             child: Row(
                               children: [
                                 // Event image

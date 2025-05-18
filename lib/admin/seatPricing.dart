@@ -37,6 +37,7 @@ class _SeatPricingPageState extends State<SeatPricingPage> {
     super.dispose();
   }
 
+  // Submits seat pricing and availability data to backend
   void _submitData() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isSubmitting = true);
@@ -82,6 +83,7 @@ class _SeatPricingPageState extends State<SeatPricingPage> {
     }
   }
 
+  // Builds a styled input field for seat/pricing data
   Widget _buildInputCard({
     required String title,
     required String hint,
@@ -128,12 +130,14 @@ class _SeatPricingPageState extends State<SeatPricingPage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(height: 20),
+              // Section title for seat availability
               Text("Enter Seat Availability",
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                   )),
               SizedBox(height: 10),
+              // Row for economy and VIP seat count
               Row(
                 children: [
                   Expanded(
@@ -154,9 +158,11 @@ class _SeatPricingPageState extends State<SeatPricingPage> {
                 ],
               ),
               SizedBox(height: 20),
+              // Section title for seat pricing
               Text("Enter Seat Pricing",
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
               SizedBox(height: 10),
+              // Row for economy and VIP seat price
               Row(
                 children: [
                   Expanded(
@@ -177,12 +183,14 @@ class _SeatPricingPageState extends State<SeatPricingPage> {
                 ],
               ),
               SizedBox(height: 20),
+              // Discount input (optional)
               _buildInputCard(
                 title: "Discount (%) (optional)",
                 hint: "Leave empty if no discount",
                 controller: _discountController,
               ),
               SizedBox(height: 20),
+              // Submit button or loading indicator
               _isSubmitting
                   ? CircularProgressIndicator()
                   : ElevatedButton(
@@ -196,6 +204,7 @@ class _SeatPricingPageState extends State<SeatPricingPage> {
                           style: TextStyle(color: Colors.white)),
                     ),
               SizedBox(height: 30),
+              // Button to go back to home page
               TextButton.icon(
                 onPressed: () {
                   Navigator.push(

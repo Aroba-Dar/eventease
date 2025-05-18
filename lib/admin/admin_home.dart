@@ -1,6 +1,5 @@
 import 'dart:convert';
 // import 'dart:typed_data';
-
 import 'package:event_ease/admin/form.dart';
 import 'package:event_ease/admin/organizer_event_page.dart';
 import 'package:event_ease/admin/qr_verifier.dart';
@@ -33,6 +32,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
     fetchOrganizerDetails();
   }
 
+  // Fetch organizer details from backend API and update state.
   Future<void> fetchOrganizerDetails() async {
     final url =
         Uri.parse('http://192.168.1.6:8081/organizers/${widget.organizerId}');
@@ -58,6 +58,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
     }
   }
 
+  // Builds the profile image widget, navigates to profile page on tap.
   Widget buildProfileImage(String imageStr) {
     return GestureDetector(
       onTap: () {
@@ -81,12 +82,14 @@ class _AdminHomePageState extends State<AdminHomePage> {
     );
   }
 
+  // Handles bottom navigation bar item tap.
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
   }
 
+  // Home content with buttons for creating events and verifying tickets.
   Widget _buildHomeContent() {
     return Padding(
       padding: const EdgeInsets.all(20.0),
@@ -133,6 +136,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
     );
   }
 
+  // List of pages for navigation.
   List<Widget> get _pages => [
         _buildHomeContent(),
         OrganizerEventsPage(organizerId: widget.organizerId),

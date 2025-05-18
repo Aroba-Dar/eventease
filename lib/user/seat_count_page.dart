@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:event_ease/payment_selection_page.dart';
+import 'package:event_ease/user/payment_selection_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -66,14 +66,15 @@ class _BookEventSeatPageState extends State<BookEventSeatPage> {
     debugPrint('Organizer ID: ${widget.event['organizerId']}');
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text("Book Seat - $eventName",
-            style: const TextStyle(color: Colors.black)),
-        backgroundColor: Colors.white,
+            style: const TextStyle(color: Colors.white)),
+        backgroundColor: Color.fromARGB(255, 156, 39, 176),
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
       ),

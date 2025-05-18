@@ -14,6 +14,7 @@ class SignupScreen extends StatefulWidget {
 class _SignupScreenState extends State<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
 
+  // Controllers for form fields
   TextEditingController nameCtrl = TextEditingController();
   TextEditingController emailCtrl = TextEditingController();
   TextEditingController contactNumberCtrl = TextEditingController();
@@ -28,6 +29,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   final Color primaryColor = const Color.fromARGB(255, 156, 39, 176);
 
+  // Pick profile image from gallery
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
@@ -37,6 +39,7 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
+  // Pick date of birth using date picker
   Future<void> _pickDate() async {
     DateTime? picked = await showDatePicker(
       context: context,
@@ -63,6 +66,7 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
+  // Register organizer by sending data to backend
   Future<void> _registerOrganizer() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -104,6 +108,7 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
+  // Input decoration for form fields
   InputDecoration _inputDecoration(String label) {
     return InputDecoration(
       labelText: label,
@@ -138,6 +143,7 @@ class _SignupScreenState extends State<SignupScreen> {
           key: _formKey,
           child: Column(
             children: [
+              // Profile image picker
               GestureDetector(
                 onTap: _pickImage,
                 child: CircleAvatar(
@@ -153,6 +159,7 @@ class _SignupScreenState extends State<SignupScreen> {
               const Text('Tap above to select profile image'),
               const SizedBox(height: 20),
 
+              // Organizer name input
               TextFormField(
                 controller: nameCtrl,
                 decoration: _inputDecoration('Organizer Name'),
@@ -163,6 +170,7 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
               const SizedBox(height: 15),
 
+              // Email input
               TextFormField(
                 controller: emailCtrl,
                 decoration: _inputDecoration('Email'),
@@ -196,6 +204,7 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
               const SizedBox(height: 15),
 
+              // Contact number input
               TextFormField(
                 controller: contactNumberCtrl,
                 decoration: _inputDecoration('Contact Number'),
@@ -226,6 +235,7 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
               const SizedBox(height: 15),
 
+              // Password input
               TextFormField(
                 controller: passwordCtrl,
                 obscureText: true,
@@ -239,6 +249,7 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
               const SizedBox(height: 15),
 
+              // Country input
               TextFormField(
                 controller: countryCtrl,
                 decoration: _inputDecoration('Country'),
@@ -249,6 +260,7 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
               const SizedBox(height: 25),
 
+              // Signup button
               SizedBox(
                 width: double.infinity,
                 height: 50,

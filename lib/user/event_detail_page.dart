@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:add_2_calendar/add_2_calendar.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:event_ease/book_event_form_page.dart';
-import 'package:event_ease/seat_count_page.dart';
+import 'package:event_ease/user/book_event_form_page.dart';
+import 'package:event_ease/user/seat_count_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -375,12 +375,14 @@ class _EventDetailsPageState extends State<EventDetailsPage>
     debugPrint('Organizer ID: ${widget.event['organizerId']}');
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
           NestedScrollView(
             headerSliverBuilder: (_, __) => [
               SliverAppBar(
-                expandedHeight: 300,
+                backgroundColor: Colors.white,
+                expandedHeight: 250,
                 pinned: true,
                 flexibleSpace: FlexibleSpaceBar(
                   background: CarouselSlider(

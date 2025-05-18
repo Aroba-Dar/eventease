@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:event_ease/e_ticket_page.dart';
+import 'package:event_ease/user/e_ticket_page.dart';
 
 // Payment Result Popup to display success message after payment
 class PaymentResultPopup extends StatelessWidget {

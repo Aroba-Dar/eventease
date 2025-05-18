@@ -182,8 +182,24 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
               _buildDropdownField("Gender", ["Male", "Female"]),
               _buildDateField("Date of Birth", dobController),
               _buildTextField("Phone", phoneController),
-              _buildDropdownField(
-                  "Country", ["United States", "Canada", "United Kingdom"]),
+              _buildDropdownField("Country", [
+                "United States",
+                "Canada",
+                "Pakistan",
+                "India",
+                "Australia",
+                "Germany",
+                "France",
+                "Italy",
+                "Spain",
+                "Japan",
+                "China",
+                "Russia",
+                "South Africa",
+                "New Zealand",
+                "Sweden",
+                "United Kingdom"
+              ]),
             ],
             // Always rendered fields (Email & Password)
             _buildTextField("Email", emailController),
@@ -213,6 +229,10 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
         obscureText: obscureText,
         decoration: InputDecoration(
           labelText: label,
+          focusedBorder: const OutlineInputBorder(
+            borderSide:
+                BorderSide(color: Color.fromARGB(255, 156, 39, 176), width: 2),
+          ),
           border: const OutlineInputBorder(),
         ),
       ),
@@ -225,7 +245,10 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
       padding: const EdgeInsets.only(bottom: 12.0),
       child: DropdownButtonFormField<String>(
         decoration: InputDecoration(
-            labelText: label, border: const OutlineInputBorder()),
+            hintText: label,
+            focusedBorder: const OutlineInputBorder(
+                borderSide:
+                    BorderSide(color: Color.fromARGB(255, 156, 39, 176)))),
         items: options
             .map((option) =>
                 DropdownMenuItem(value: option, child: Text(option)))
@@ -248,7 +271,12 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
         controller: controller,
         readOnly: true,
         decoration: InputDecoration(
-            labelText: label, suffixIcon: const Icon(Icons.calendar_today)),
+            labelText: label,
+            suffixIcon: const Icon(Icons.calendar_today,
+                size: 20, color: Color.fromARGB(255, 156, 39, 176)),
+            focusedBorder: const OutlineInputBorder(
+                borderSide:
+                    BorderSide(color: Color.fromARGB(255, 156, 39, 176)))),
         onTap: () async {
           DateTime? pickedDate = await showDatePicker(
             context: context,
@@ -301,6 +329,7 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
   Widget _submitButton() {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.white,
         elevation: 3,
         side: BorderSide(color: primaryColor),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

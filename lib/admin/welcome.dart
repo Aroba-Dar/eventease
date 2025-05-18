@@ -15,6 +15,7 @@ class OrganizerLandingPage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // App logo
               Center(
                 child: Image.asset(
                   'assets/images/app_logo.jpeg',
@@ -23,7 +24,7 @@ class OrganizerLandingPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              // Welcome Text with RichText
+              // Welcome Text with RichText for colored app name
               RichText(
                 text: TextSpan(
                   children: [
@@ -43,14 +44,14 @@ class OrganizerLandingPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
-
-              // Rest unchanged
+              // Subtitle text
               Text(
                 "A Smart Event Ticketing App",
                 style: TextStyle(fontSize: 17, color: Colors.grey[700]),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 40),
+              // Motivational row with icon and text
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -71,8 +72,8 @@ class OrganizerLandingPage extends StatelessWidget {
                   ),
                 ],
               ),
-
               const SizedBox(height: 60),
+              // Login button
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 50),
@@ -86,6 +87,7 @@ class OrganizerLandingPage extends StatelessWidget {
                     style: TextStyle(fontSize: 18, color: Colors.white)),
               ),
               const SizedBox(height: 20),
+              // Signup button
               OutlinedButton(
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 50),

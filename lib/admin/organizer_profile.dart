@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 
 class OrganizerProfilePage extends StatelessWidget {
@@ -8,7 +11,7 @@ class OrganizerProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final primaryColor = const Color.fromARGB(255, 156, 39, 176);
-
+    print("Profile Image: ${organizerData['profileImage']}");
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -29,11 +32,14 @@ class OrganizerProfilePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            // Organizer profile image
             CircleAvatar(
-              backgroundImage: NetworkImage(organizerData['profileImage']),
               radius: 60,
+              backgroundColor: Colors.grey.shade200,
+              backgroundImage: _getImageProvider(organizerData['profileImage']),
             ),
             const SizedBox(height: 25),
+            // Card displaying organizer details
             Card(
               elevation: 4,
               shape: RoundedRectangleBorder(
@@ -61,6 +67,7 @@ class OrganizerProfilePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 30),
+            // Logout button
             ElevatedButton.icon(
               icon: const Icon(Icons.logout, size: 22, color: Colors.white),
               label: const Text(
@@ -80,6 +87,7 @@ class OrganizerProfilePage extends StatelessWidget {
                 shadowColor: Colors.redAccent,
               ),
               onPressed: () {
+                // Pops all routes and returns to the first screen (logout)
                 Navigator.popUntil(context, (route) => route.isFirst);
               },
             ),
@@ -89,6 +97,29 @@ class OrganizerProfilePage extends StatelessWidget {
     );
   }
 
+  ImageProvider _getImageProvider(String? imageString) {
+    if (imageString == null || imageString.isEmpty) {
+      return const AssetImage('assets/default_profile.png');
+    }
+
+    try {
+      // Check if it contains prefix
+      if (imageString.startsWith('data:image')) {
+        final base64Str = imageString.split(',').last;
+        Uint8List bytes = base64Decode(base64Str);
+        return MemoryImage(bytes);
+      } else {
+        // Assume it's raw base64 without prefix
+        Uint8List bytes = base64Decode(imageString);
+        return MemoryImage(bytes);
+      }
+    } catch (e) {
+      print("Error decoding image: $e");
+      return const AssetImage('assets/default_profile.png');
+    }
+  }
+
+  // Helper widget to display a label and value in bold and accent color
   Widget _buildBoldInfoRow(String label, String value, Color accentColor) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),

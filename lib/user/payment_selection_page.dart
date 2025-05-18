@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:event_ease/review_summary_page.dart';
+import 'package:event_ease/user/review_summary_page.dart';
 
 class PaymentSelectionPage extends StatefulWidget {
   final int eventId;
@@ -42,6 +42,7 @@ class _PaymentSelectionPageState extends State<PaymentSelectionPage> {
     debugPrint('Organizer ID: ${widget.event['organizerId']}');
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text("Payments"),
         centerTitle: true,
@@ -190,7 +191,9 @@ class _PaymentSelectionPageState extends State<PaymentSelectionPage> {
                 ),
               );
             },
-            child: const Text("OK"), // Button text
+            child: const Text("OK",
+                style: TextStyle(
+                    color: Color.fromARGB(255, 156, 39, 176))), // Button text
           )
         ],
       ),

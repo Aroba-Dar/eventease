@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:event_ease/event_detail_page.dart';
+import 'package:event_ease/user/event_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'category.dart';
@@ -88,7 +88,9 @@ class _PopularEventsPageState extends State<PopularEventsPage> {
         : events.where((e) => e['category'] == selectedCategory).toList();
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: const Text(
           "Popular Events",
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
@@ -160,7 +162,7 @@ class EventCard extends StatelessWidget {
                 'location': event['location'] ?? '',
                 'imageUrl': event['imageUrl'] ?? '',
                 'organizerId': event['organizerId'] ?? '',
-                'description': event['description'] ?? '',
+                // 'description': event['description'] ?? '',
                 'organizerName': event['organizer'] ?? '', // Organizer's name
                 'organizerImage':
                     event['organizerImage'] ?? '', // Organizer's image
@@ -179,7 +181,7 @@ class EventCard extends StatelessWidget {
           children: [
             // Display event image
             AspectRatio(
-              aspectRatio: 16 / 9,
+              aspectRatio: 15 / 8,
               child: ClipRRect(
                 borderRadius:
                     const BorderRadius.vertical(top: Radius.circular(12)),

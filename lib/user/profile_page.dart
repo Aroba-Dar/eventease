@@ -1,3 +1,4 @@
+import 'package:event_ease/auth/login.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -56,8 +57,17 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white, // Background color
       appBar: AppBar(
-        title: const Text("Profile"), // AppBar title
+        leading: IconButton(
+          icon:
+              const Icon(Icons.arrow_back, color: Colors.white), // Back button
+          onPressed: () {
+            Navigator.pop(context); // Navigate back to the previous screen
+          },
+        ),
+        title: const Text("Profile",
+            style: TextStyle(color: Colors.white)), // AppBar title
         backgroundColor: const Color(0xFF9C27B0), // Primary color
       ),
       body: Padding(
@@ -130,6 +140,36 @@ class _ProfilePageState extends State<ProfilePage> {
                       fontSize: 18,
                       fontWeight: FontWeight.bold),
                 ),
+              ),
+            ),
+            const SizedBox(height: 20), // Space before the button
+            Center(
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.logout, size: 22, color: Colors.white),
+                label: const Text(
+                  "Logout",
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.white),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 246, 93, 93),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 14, horizontal: 30),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30)),
+                  elevation: 6,
+                  shadowColor: Colors.redAccent,
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LoginRegisterPage(),
+                    ),
+                  );
+                },
               ),
             ),
           ],

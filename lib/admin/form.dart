@@ -17,15 +17,17 @@ class OrganizerEventForm extends StatefulWidget {
 class _OrganizerEventFormState extends State<OrganizerEventForm> {
   final _formKey = GlobalKey<FormState>();
 
+  // Form fields and state variables
   String title = "", location = "", about = "", category = "Music";
   DateTime? eventDate;
   TimeOfDay? startTime;
   File? eventImage;
-  int organizerId = 4; // Replace with actual organizer ID
+  // int organizerId = 4; // Replace with actual organizer ID
   int? eventId; // <-- Added this for accessing eventId later
 
   final picker = ImagePicker();
 
+  // Pick an image from gallery for the event
   Future pickEventImage() async {
     final picked = await picker.pickImage(source: ImageSource.gallery);
     if (picked != null) {
@@ -33,6 +35,7 @@ class _OrganizerEventFormState extends State<OrganizerEventForm> {
     }
   }
 
+  // Pick date and time for the event
   Future pickDateTime() async {
     final pickedDate = await showDatePicker(
       context: context,
@@ -54,6 +57,7 @@ class _OrganizerEventFormState extends State<OrganizerEventForm> {
     }
   }
 
+  // Format the selected date and time for display and backend
   String getFormattedDateTime() {
     if (eventDate == null || startTime == null) return 'Pick Date & Time';
     final startDateTime = DateTime(
@@ -73,6 +77,7 @@ class _OrganizerEventFormState extends State<OrganizerEventForm> {
         "${timeWithAmPmFormat.format(endDateTime)}";
   }
 
+  // Submit the event data to the backend API
   Future<void> handleSubmit() async {
     if (_formKey.currentState!.validate() &&
         eventImage != null &&
@@ -89,7 +94,7 @@ class _OrganizerEventFormState extends State<OrganizerEventForm> {
         "location": location,
         "imageUrl": base64Image,
         "organizer": {
-          "organizerId": organizerId,
+          "organizerId": widget.organizerId,
         }
       };
 
@@ -149,6 +154,7 @@ class _OrganizerEventFormState extends State<OrganizerEventForm> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 23),
+              // Event title input
               TextFormField(
                 decoration: InputDecoration(
                   labelText: 'Title of Event',
@@ -167,6 +173,7 @@ class _OrganizerEventFormState extends State<OrganizerEventForm> {
                 onChanged: (value) => setState(() => title = value),
               ),
               SizedBox(height: 10),
+              // Event location input
               TextFormField(
                 decoration: InputDecoration(
                   labelText: 'Location',
@@ -185,6 +192,7 @@ class _OrganizerEventFormState extends State<OrganizerEventForm> {
                 onChanged: (value) => setState(() => location = value),
               ),
               SizedBox(height: 10),
+              // Category dropdown
               DropdownButtonFormField<String>(
                 value: category,
                 icon: Icon(Icons.arrow_drop_down,
@@ -216,6 +224,7 @@ class _OrganizerEventFormState extends State<OrganizerEventForm> {
                 onChanged: (val) => setState(() => category = val!),
               ),
               SizedBox(height: 10),
+              // Date and time picker
               ListTile(
                 title: Text(getFormattedDateTime()),
                 trailing: Icon(Icons.calendar_today,
@@ -223,6 +232,7 @@ class _OrganizerEventFormState extends State<OrganizerEventForm> {
                 onTap: pickDateTime,
               ),
               SizedBox(height: 10),
+              // Event image picker
               GestureDetector(
                 onTap: pickEventImage,
                 child: Container(
@@ -241,6 +251,7 @@ class _OrganizerEventFormState extends State<OrganizerEventForm> {
                 ),
               ),
               SizedBox(height: 20),
+              // Submit event button
               Center(
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -257,6 +268,7 @@ class _OrganizerEventFormState extends State<OrganizerEventForm> {
                 ),
               ),
               SizedBox(height: 10),
+              // Button to go to add description page after event is created
               Center(
                 child: TextButton.icon(
                   onPressed: eventId != null
