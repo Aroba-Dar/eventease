@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:event_ease/auth/login.dart';
 import 'package:event_ease/user/event_detail_page.dart';
 import 'package:event_ease/user/favourite_page.dart';
 import 'package:event_ease/user/profile_page.dart';
@@ -595,7 +596,6 @@ class _HomePageState extends State<HomePage> {
 
               if (!isGuest) {
                 final userId = prefs.getInt('userId') ?? 0;
-                print("Saved userId from prefs: $userId");
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -609,10 +609,54 @@ class _HomePageState extends State<HomePage> {
                 );
               }
             } else if (index == 3) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProfilePage()),
-              );
+              final prefs = await SharedPreferences.getInstance();
+              final isGuest = prefs.getBool('isGuest') ?? true;
+
+              if (!isGuest) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ProfilePage()),
+                );
+              } else {
+                // Show dialog prompting login
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Login Required'),
+                    content: const Text('Please login to access your profile.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context); // Close dialog
+                        },
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          Navigator.pop(context); // Close dialog
+                          // Navigate to LoginPage and wait for result
+                          final loginSuccess = await Navigator.push<bool>(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    const LoginRegisterPage()),
+                          );
+
+                          if (loginSuccess == true) {
+                            // User logged in successfully, go to Profile page
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const ProfilePage()),
+                            );
+                          }
+                        },
+                        child: const Text('Login'),
+                      ),
+                    ],
+                  ),
+                );
+              }
             }
           },
         ),

@@ -103,13 +103,15 @@ class OrganizerProfilePage extends StatelessWidget {
     }
 
     try {
-      // Check if it contains prefix
-      if (imageString.startsWith('data:image')) {
+      if (imageString.startsWith('http') || imageString.startsWith('https')) {
+        // Load from network URL
+        return NetworkImage(imageString);
+      } else if (imageString.startsWith('data:image')) {
         final base64Str = imageString.split(',').last;
         Uint8List bytes = base64Decode(base64Str);
         return MemoryImage(bytes);
       } else {
-        // Assume it's raw base64 without prefix
+        // Assume raw base64 string
         Uint8List bytes = base64Decode(imageString);
         return MemoryImage(bytes);
       }
