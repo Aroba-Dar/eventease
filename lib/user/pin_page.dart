@@ -162,7 +162,7 @@ class _EnterPinPageState extends State<EnterPinPage> {
       debugPrint('Generating OTP for ${widget.userEmail}');
       final response = await http.post(
         Uri.parse(
-            'http://192.168.1.6:8081/api/otp/generate?email=${widget.userEmail}'),
+            'http://localhost:8080/api/otp/generate?email=${widget.userEmail}'),
       );
 
       debugPrint(
@@ -210,7 +210,7 @@ class _EnterPinPageState extends State<EnterPinPage> {
       }
 
       final response = await http.post(
-        Uri.parse('http://192.168.1.6:8081/api/otp/verify'),
+        Uri.parse('http://localhost:8080/api/otp/verify'),
         body: jsonEncode({
           'email': widget.userEmail,
           'otpCode': enteredOtp,

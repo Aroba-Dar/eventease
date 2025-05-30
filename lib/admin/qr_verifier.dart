@@ -5,6 +5,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 
 class QRVerifierPage extends StatefulWidget {
+  const QRVerifierPage({super.key});
+
   @override
   _QRVerifierPageState createState() => _QRVerifierPageState();
 }
@@ -108,7 +110,7 @@ class _QRVerifierPageState extends State<QRVerifierPage> {
 
       final uri = Uri(
         scheme: 'http',
-        host: '192.168.1.6',
+        host: '192.168.145.196',
         port: 8081,
         path: '/api/tickets/verify',
         queryParameters: queryParams,

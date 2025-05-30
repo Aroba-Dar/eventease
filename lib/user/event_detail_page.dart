@@ -49,7 +49,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
 
   Future<void> fetchEventGallery(int eventId) async {
     final response = await http.get(
-      Uri.parse('http://192.168.1.6:8081/api/event-gallery/$eventId'),
+      Uri.parse('http://localhost:8080/api/event-gallery/$eventId'),
     );
 
     if (response.statusCode == 200) {
@@ -86,7 +86,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
 
   Future<String?> fetchEventAbout(int eventId) async {
     final response = await http.get(
-        Uri.parse('http://192.168.1.6:8081/api/about-event/events/$eventId'));
+        Uri.parse('http://localhost:8080/api/about-event/events/$eventId'));
     if (response.statusCode == 200) {
       return response.body; // plain text, no need for jsonDecode
     } else {
@@ -284,7 +284,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
       return;
     }
 
-    final String url = 'http://192.168.1.6:8081/favorites/toggle';
+    final String url = 'http://localhost:8080/favorites/toggle';
 
     try {
       final response = await http.post(

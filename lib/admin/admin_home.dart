@@ -35,7 +35,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
   // Fetch organizer details from backend API and update state.
   Future<void> fetchOrganizerDetails() async {
     final url =
-        Uri.parse('http://192.168.1.6:8081/organizers/${widget.organizerId}');
+        Uri.parse('http://localhost:8080/organizers/${widget.organizerId}');
     try {
       final response = await http.get(url);
 

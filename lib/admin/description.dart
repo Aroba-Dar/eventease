@@ -8,10 +8,10 @@ class DescriptionEvent extends StatefulWidget {
   final int organizerId; // Organizer ID for navigation
 
   const DescriptionEvent({
-    Key? key,
+    super.key,
     required this.eventId,
     required this.organizerId, // Organizer ID required
-  }) : super(key: key);
+  });
   @override
   _DescriptionEventState createState() => _DescriptionEventState();
 }
@@ -29,7 +29,7 @@ class _DescriptionEventState extends State<DescriptionEvent> {
     setState(() => isSubmitting = true);
 
     final response = await http.post(
-      Uri.parse('http://192.168.1.6:8081/api/about-event/events'),
+      Uri.parse('http://localhost:8080/api/about-event/events'),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
         "eventId": widget.eventId,

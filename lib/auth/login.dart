@@ -28,7 +28,7 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
   String? selectedCountry;
 
   // API base URL
-  final String apiBase = 'http://192.168.1.6:8081/users';
+  final String apiBase = 'http://localhost:8080/users';
 
   // App primary color
   final Color primaryColor = const Color(0xFF9C27B0); // Logo purple color

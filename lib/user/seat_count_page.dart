@@ -31,7 +31,7 @@ class _BookEventSeatPageState extends State<BookEventSeatPage> {
 
   Future<void> fetchSeatPricing(int eventId) async {
     final url =
-        Uri.parse('http://192.168.1.6:8081/api/seat-pricing/by-event/$eventId');
+        Uri.parse('http://localhost:8080/api/seat-pricing/by-event/$eventId');
 
     try {
       final response = await http.get(url);

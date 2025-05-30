@@ -99,7 +99,7 @@ class _OrganizerEventFormState extends State<OrganizerEventForm> {
       };
 
       final response = await http.post(
-        Uri.parse('http://192.168.1.6:8081/events/add_events'),
+        Uri.parse('http://localhost:8080/events/add_events'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(eventData),
       );

@@ -25,7 +25,7 @@ class _MyTicketsPageState extends State<MyTicketsPage> {
   // Fetches tickets for the organizer from the backend
   Future<void> fetchTickets() async {
     final url = Uri.parse(
-        'http://192.168.1.6:8081/api/tickets/organizer/${widget.organizerId}');
+        'http://localhost:8080/api/tickets/organizer/${widget.organizerId}');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {

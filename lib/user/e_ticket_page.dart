@@ -100,11 +100,11 @@ class ETicketPage extends StatelessWidget {
 
             ElevatedButton(
               onPressed: () => _downloadTicket(context),
-              child: Text("Download Ticket",
-                  style: TextStyle(color: Color.fromARGB(255, 156, 39, 176))),
               style: ElevatedButton.styleFrom(
                 minimumSize: Size(double.infinity, 50),
               ),
+              child: Text("Download Ticket",
+                  style: TextStyle(color: Color.fromARGB(255, 156, 39, 176))),
             ),
           ],
         ),
@@ -133,7 +133,7 @@ class ETicketPage extends StatelessWidget {
 
   void _downloadTicket(BuildContext context) async {
     final response = await http.post(
-      Uri.parse("http://192.168.1.6:8081/api/tickets/tickets"),
+      Uri.parse("http://localhost:8080/api/tickets/tickets"),
       headers: {"Content-Type": "application/json"},
       body: json.encode({
         "bookingId": bookingId,

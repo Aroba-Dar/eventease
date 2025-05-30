@@ -8,10 +8,10 @@ class SeatPricingPage extends StatefulWidget {
   final int organizerId;
 
   const SeatPricingPage({
-    Key? key,
+    super.key,
     required this.eventId,
     required this.organizerId,
-  }) : super(key: key);
+  });
 
   @override
   _SeatPricingPageState createState() => _SeatPricingPageState();
@@ -56,7 +56,7 @@ class _SeatPricingPageState extends State<SeatPricingPage> {
 
       try {
         final response = await http.post(
-          Uri.parse("http://192.168.1.6:8081/api/seat-pricing"),
+          Uri.parse("http://localhost:8080/api/seat-pricing"),
           headers: {"Content-Type": "application/json"},
           body: jsonEncode(seatData),
         );

@@ -30,20 +30,6 @@ class EventEaseApp extends StatelessWidget {
         primaryColor: Color.fromARGB(255, 156, 39, 176),
         fontFamily: 'Arial',
       ),
-
-      // // Setting the initial route of the app
-      // // initialRoute: '/login',
-      // // routes: {
-      // //   '/login': (context) =>
-      // //       const LoginRegisterPage(), // Login/Register screen
-      // //   '/home': (context) => const HomePage(), // Home screen after login
-      // // },
-      // initialRoute: '/',
-      // routes: {
-      //   '/': (context) => OrganizerLandingPage(),
-      //   '/login': (context) => LoginScreen(),
-      //   '/signup': (context) => SignupScreen(),
-      // Setting the initial route of the app
       initialRoute: '/onboarding', // Start with onboarding
 
       routes: {

@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'admin_home.dart';
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
@@ -15,7 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // Handles login logic and navigation
   Future<void> _login() async {
-    final url = Uri.parse('http://192.168.1.6:8081/organizers/login');
+    final url = Uri.parse('http://localhost:8080/organizers/login');
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},

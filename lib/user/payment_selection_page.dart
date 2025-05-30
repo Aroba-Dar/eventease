@@ -207,7 +207,7 @@ class _PaymentSelectionPageState extends State<PaymentSelectionPage> {
     try {
       // Create a payment intent on the server
       final response = await http.post(
-        Uri.parse('http://192.168.1.6:8081/api/stripe/create-payment-intent'),
+        Uri.parse('http://localhost:8080/api/stripe/create-payment-intent'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'amount': (widget.totalPrice * 100).toInt(), // Convert to cents

@@ -9,10 +9,10 @@ class UploadGalleryImagesPage extends StatefulWidget {
   final int eventId;
   final int organizerId;
   const UploadGalleryImagesPage({
-    Key? key,
+    super.key,
     required this.eventId,
     required this.organizerId,
-  }) : super(key: key);
+  });
 
   @override
   State<UploadGalleryImagesPage> createState() =>
@@ -27,7 +27,7 @@ class _UploadGalleryImagesPageState extends State<UploadGalleryImagesPage> {
 
   // Pick up to 3 images from the gallery
   Future<void> pickImages() async {
-    final List<XFile>? picked = await _picker.pickMultiImage();
+    final List<XFile> picked = await _picker.pickMultiImage();
     if (picked != null && picked.length <= 3) {
       setState(() => _images = picked);
     } else {
@@ -53,7 +53,7 @@ class _UploadGalleryImagesPageState extends State<UploadGalleryImagesPage> {
         // Send base64 image to backend
         final response = await http.post(
           Uri.parse(
-              'http://192.168.1.6:8081/api/gallery/upload/${widget.eventId}'),
+              'http://localhost:8080/api/gallery/upload/${widget.eventId}'),
           headers: {"Content-Type": "text/plain"},
           body: base64Image,
         );

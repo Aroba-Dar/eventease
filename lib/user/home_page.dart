@@ -154,7 +154,7 @@ class _HomePageState extends State<HomePage> {
 
   // Fetch user data from the server
   Future<void> fetchUserData(String email) async {
-    final url = Uri.parse('http://192.168.1.6:8081/users/email/$email');
+    final url = Uri.parse('http://localhost:8080/users/email/$email');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -180,8 +180,7 @@ class _HomePageState extends State<HomePage> {
 
   // Fetch events from the server
   Future<void> fetchEvents() async {
-    final response =
-        await http.get(Uri.parse('http://192.168.1.6:8081/events'));
+    final response = await http.get(Uri.parse('http://localhost:8080/events'));
     if (response.statusCode == 200) {
       List data = json.decode(response.body);
       setState(() {

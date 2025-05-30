@@ -6,7 +6,7 @@ import 'dart:typed_data';
 class FavouritesPage extends StatefulWidget {
   final int userId;
 
-  FavouritesPage({required this.userId});
+  const FavouritesPage({super.key, required this.userId});
 
   @override
   _FavouritesPageState createState() => _FavouritesPageState();
@@ -23,7 +23,7 @@ class _FavouritesPageState extends State<FavouritesPage> {
 
   Future<void> fetchFavourites() async {
     final response = await http.get(
-      Uri.parse("http://192.168.1.6:8081/favorites/${widget.userId}"),
+      Uri.parse("http://localhost:8080/favorites/${widget.userId}"),
     );
 
     print("Response: ${response.body}");

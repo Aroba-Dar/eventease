@@ -30,7 +30,7 @@ class _PopularEventsPageState extends State<PopularEventsPage> {
   Future<void> fetchEvents() async {
     try {
       final response =
-          await http.get(Uri.parse('http://192.168.1.6:8081/events'));
+          await http.get(Uri.parse('http://localhost:8080/events'));
       // chexk organizer id is present or not
 
       if (response.statusCode == 200) {

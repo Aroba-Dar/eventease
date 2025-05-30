@@ -51,7 +51,7 @@ class _OrganizerEventsPageState extends State<OrganizerEventsPage> {
   // Fetches events for the given organizer from the backend
   Future<List<Event>> fetchEventsByOrganizer(int organizerId) async {
     final url =
-        Uri.parse('http://192.168.1.6:8081/events/by-organizer/$organizerId');
+        Uri.parse('http://localhost:8080/events/by-organizer/$organizerId');
     final response = await http.get(url);
 
     if (response.statusCode == 200) {

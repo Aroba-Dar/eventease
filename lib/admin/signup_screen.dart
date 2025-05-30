@@ -7,6 +7,8 @@ import 'dart:io';
 import 'login_screen.dart';
 
 class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
+
   @override
   _SignupScreenState createState() => _SignupScreenState();
 }
@@ -78,7 +80,7 @@ class _SignupScreenState extends State<SignupScreen> {
       base64Image = null;
     }
 
-    final url = Uri.parse('http://192.168.1.6:8081/organizers/signup');
+    final url = Uri.parse('http://localhost:8080/organizers/signup');
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
@@ -177,8 +179,9 @@ class _SignupScreenState extends State<SignupScreen> {
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
                   if (value == null || value.isEmpty) return 'Enter email';
-                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value))
+                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
                     return 'Enter valid email';
+                  }
                   return null;
                 },
               ),
@@ -210,8 +213,9 @@ class _SignupScreenState extends State<SignupScreen> {
                 decoration: _inputDecoration('Contact Number'),
                 keyboardType: TextInputType.phone,
                 validator: (value) {
-                  if (value == null || value.isEmpty)
+                  if (value == null || value.isEmpty) {
                     return 'Enter contact number';
+                  }
                   return null;
                 },
               ),
@@ -228,8 +232,9 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 onTap: _pickDate,
                 validator: (value) {
-                  if (value == null || value.isEmpty)
+                  if (value == null || value.isEmpty) {
                     return 'Enter date of birth';
+                  }
                   return null;
                 },
               ),
@@ -242,8 +247,9 @@ class _SignupScreenState extends State<SignupScreen> {
                 decoration: _inputDecoration('Password'),
                 validator: (value) {
                   if (value == null || value.isEmpty) return 'Enter password';
-                  if (value.length < 6)
+                  if (value.length < 6) {
                     return 'Password should be at least 6 characters';
+                  }
                   return null;
                 },
               ),
